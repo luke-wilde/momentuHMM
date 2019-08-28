@@ -1,4 +1,4 @@
-momentuHMM 1.5.0 2019-08-21
+momentuHMM 1.5.0 2019-08-25
 -----------------
 NEW FEATURES
 
@@ -18,7 +18,7 @@ NEW FEATURES
 
 * added getTrProbs function for calculating transition probabilities
 
-* progressBar argument has been added to crawlWrap and MIfitHMM
+* added na.rm argument to MIpool and MIfitHMM for excluding model fits with NA estimates or standard errors from pooling
 
 
 momentuHMM 1.4.3 2018-11-21
