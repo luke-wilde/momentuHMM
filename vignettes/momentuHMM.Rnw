@@ -16,6 +16,8 @@
 \usepackage{url}
 \usepackage{lscape}
 \usepackage[toc,page]{appendix}
+\usepackage{colortbl}
+\definecolor{Gray}{gray}{0.9}
 
 \newcommand{\stoptocwriting}{%
   \addtocontents{toc}{\protect\setcounter{tocdepth}{-5}}}
@@ -196,39 +198,46 @@ The state transition probabilities $({\mathbf \Gamma}^{(t)})$ and initial distri
 
 \begin{small}
 \begin{table}
-  \caption{\label{tab:unipdfs} Univariate data stream $(z)$ probability distributions, natural parameters, and default link functions for covariate modelling. Probability distributions with positive support can be zero-inflated (with additional zero-mass parameters), while the beta distribution can be zero- and/or one-inflated (with additional one-mass parameters). If user-specified bounds are provided, then custom link functions are used instead of the defaults (see package documentation for further details). If both zero- and one-inflation are included, then a multinomial logit (mlogit) link is used because these probabilities must sum to less than one (in this case, any user-specified bounds for the zero- and one-inflation parameters are ignored). If circular-circular regression is specified for the mean of angular distributions (``vm'' and ``wrpcauchy''), then a link function based on \cite{RivestEtAl2016} is used. The von Mises consensus distribution (``vmConsensus'') is a von Mises circular-circular regression model where the concentration parameter depends on the level of agreement among short-term directional persistence and angular covariates. Users seeking additional univariate probability distributions are encouraged to contact the authors.}
+  \caption{\label{tab:unipdfs} Univariate data stream $(z)$ probability distributions, natural parameters, and default link functions for covariate modelling. If user-specified parameter bounds are provided, then custom link functions are used instead of the defaults (see package documentation for further details). %If both zero- and one-inflation are included, then a multinomial logit (mlogit) link is used because these probabilities must sum to less than one (in this case, any user-specified bounds for the zero- and one-inflation parameters are ignored). 
+If circular-circular regression is specified for the mean of angular distributions (``vm'' and ``wrpcauchy''), then a link function based on \cite{RivestEtAl2016} is used. Users seeking additional univariate probability distributions are encouraged to contact the authors.}
   \begin{tabular}{llll}
   \toprule
-  Distribution & Support & Parameters & Link function\footnotemark \tabularnewline
+  Distribution                                & Support                       & Parameters                                      & Link function$^1$ \tabularnewline
   \midrule
-  Bernoulli (``\verb|bern|'')                 & $z_t\in\{0,1\}$               & $\verb|prob|\in(0,1)$            &  $\text{logit}$ \tabularnewline  
-  Beta (``\verb|beta|'')                      & $z_t\in(0,1)$                 & $\verb|shape1|>0$                &  $\log$ \tabularnewline  
-                                              &                               & $\verb|shape2|>0$                &  $\log$ \tabularnewline
-                                              &                               & $\verb|zero-mass|\in(0,1)$       &  $\text{logit}$ \tabularnewline 
-                                              &                               & $\verb|one-mass|\in(0,1)$        &  $\text{logit}$ \tabularnewline 
-  Categorical (``\verb|cat|'')                & $z_t\in\{1,\ldots,k\}$      & $\verb|prob|_1,\ldots,\verb|prob|_{k-1}\in(0,1)$           &  $\text{mlogit}$ \tabularnewline    
-  Exponential (``\verb|exp|'')                & $z_t>0$                       & $\verb|rate|>0$                  &  $\log$ \tabularnewline  
-                                              &                               & $\verb|zero-mass|\in(0,1)$       &  $\text{logit}$ \tabularnewline 
-  Gamma (``\verb|gamma|'')                    & $z_t>0$                       & $\verb|mean|>0$                  &  $\log$ \tabularnewline  
-                                              &                               & $\verb|sd|>0$                    &  $\log$ \tabularnewline  
-                                              &                               & $\verb|zero-mass|\in(0,1)$       &  $\text{logit}$ \tabularnewline 
-  Log normal (``\verb|lnorm|'')               & $z_t>0$                       & $\verb|location|\in{\rm I\!R}$   &  identity \tabularnewline  
-                                              &                               & $\verb|scale|>0$                 &  $\log$ \tabularnewline  
-                                              &                               & $\verb|zero-mass|\in(0,1)$       &  $\text{logit}$ \tabularnewline 
-  Normal (``\verb|norm|'')                    & $z_t\in{\rm I\!R}$            & $\verb|mean|\in{\rm I\!R}$       &  identity \tabularnewline  
-                                              &                               & $\verb|sd|>0$                    &  $\log$ \tabularnewline 
-  Normal random walk (``\verb|rw_norm|'')     & $z_t\in{\rm I\!R}$            & $\verb|mean|\in{\rm I\!R}$       &  identity \tabularnewline  
-                                              &                               & $\verb|sd|>0$                    &  $\log$ \tabularnewline       
-  Poisson (``\verb|pois|'')                   & $z_t\in\{0,1,\ldots\}$        & $\verb|lambda|>0$                &  $\log$ \tabularnewline  
-  Von Mises (``\verb|vm|'')                   & $z_t\in(-\pi,\pi]$            & $\verb|mean|\in(-\pi,\pi]$       &  $\tan(\verb|mean|/2)$ \tabularnewline  
-                                              &                               & $\verb|concentration|>0$         &  $\log$ \tabularnewline 
-  Von Mises (``\verb|vmConsensus|'')          & $z_t\in(-\pi,\pi]$            & $\verb|mean|\in(-\pi,\pi]$       &  \citeauthor{RivestEtAl2016} \tabularnewline  
-                                              &                               & $\verb|kappa|>0$                 &  $\log$ \tabularnewline 
-  Weibull (``\verb|weibull|'')                & $z_t>0$                       & $\verb|shape|>0$                 &  $\log$ \tabularnewline  
-                                              &                               & $\verb|scale|>0$                 &  $\log$ \tabularnewline  
-                                              &                               & $\verb|zero-mass|\in(0,1)$       &  $\text{logit}$ \tabularnewline 
-  Wrapped Cauchy (``\verb|wrpcauchy|'')       & $z_t\in(-\pi,\pi]$            & $\verb|mean|\in(-\pi,\pi]$       &  $\tan(\verb|mean|/2)$ \tabularnewline  
-                                              &                               & $\verb|concentration|\in(0,1)$   &  $\text{logit}$ \tabularnewline 
+  \rowcolor{Gray} Bernoulli (``\verb|bern|'') & $z_t\in\{0,1\}$               & $\verb|prob|\in(0,1)$                           &  $\text{logit}$ \tabularnewline  
+  Beta (``\verb|beta|'')                      & $z_t\in(0,1)$                 & $\verb|shape1|>0$                               &  $\log$ \tabularnewline  
+                                              &                               & $\verb|shape2|>0$                               &  $\log$ \tabularnewline
+                                              &                               & $\verb|zero-mass|\in(0,1)$                      &  $\text{logit}$ \tabularnewline 
+                                              &                               & $\verb|one-mass|\in(0,1)$                       &  $\text{logit}$ \tabularnewline 
+  \rowcolor{Gray} Categorical (``\verb|cat|'')& $z_t\in\{1,\ldots,k\}$        & $\verb|prob|_1,\ldots,\verb|prob|_{k-1}\in(0,1)$&  $\text{mlogit}$ \tabularnewline    
+  Exponential (``\verb|exp|'')                & $z_t>0$                       & $\verb|rate|>0$                                 &  $\log$ \tabularnewline  
+                                              &                               & $\verb|zero-mass|\in(0,1)$                      &  $\text{logit}$ \tabularnewline 
+  \rowcolor{Gray} Gamma (``\verb|gamma|'')    & $z_t>0$                       & $\verb|mean|>0$                                 &  $\log$ \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|sd|>0$                                   &  $\log$ \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|zero-mass|\in(0,1)$                      &  $\text{logit}$ \tabularnewline 
+  Log normal (``\verb|lnorm|'')               & $z_t>0$                       & $\verb|location|\in{\rm I\!R}$                  &  identity \tabularnewline  
+                                              &                               & $\verb|scale|>0$                                &  $\log$ \tabularnewline  
+                                              &                               & $\verb|zero-mass|\in(0,1)$                      &  $\text{logit}$ \tabularnewline 
+  \rowcolor{Gray} Logistic (``\verb|logis|'') & $z_t\in{\rm I\!R}$            & $\verb|location|\in{\rm I\!R}$                  &  identity \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|scale|>0$                                &  $\log$ \tabularnewline                
+  Negative binomial (``\verb|negbinom|'')     & $z_t\in\{0,1,\ldots\}$        & $\verb|mu|>0$                                   &  $\log$ \tabularnewline  
+                                              &                               & $\verb|size|>0$                                 &  $\log$ \tabularnewline  
+  \rowcolor{Gray} Normal (``\verb|norm|'')    & $z_t\in{\rm I\!R}$            & $\verb|mean|\in{\rm I\!R}$                      &  identity \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|sd|>0$                                   &  $\log$ \tabularnewline 
+  Normal random walk (``\verb|rw_norm|'')     & $z_t\in{\rm I\!R}$            & $\verb|mean|\in{\rm I\!R}$                      &  identity \tabularnewline  
+                                              &                               & $\verb|sd|>0$                                   &  $\log$ \tabularnewline       
+  \rowcolor{Gray} Poisson (``\verb|pois|'')   & $z_t\in\{0,1,\ldots\}$        & $\verb|lambda|>0$                               &  $\log$ \tabularnewline  
+  Non-central t (``\verb|t|'')                & $z_t\in{\rm I\!R}$            & $\verb|df|>0$                                   &  $\log$ \tabularnewline  
+                                              &                               & $\verb|ncp|\in{\rm I\!R}$                       &  identity \tabularnewline 
+  \rowcolor{Gray} Von Mises (``\verb|vm|'')   & $z_t\in(-\pi,\pi]$            & $\verb|mean|\in(-\pi,\pi]$                      &  $\tan(\verb|mean|/2)$ \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|concentration|>0$                        &  $\log$ \tabularnewline 
+  Von Mises (``\verb|vmConsensus|'')          & $z_t\in(-\pi,\pi]$            & $\verb|mean|\in(-\pi,\pi]$                      &  \citeauthor{RivestEtAl2016} \tabularnewline  
+                                              &                               & $\verb|kappa|>0$                                &  $\log$ \tabularnewline 
+  \rowcolor{Gray} Weibull (``\verb|weibull|'')& $z_t>0$                       & $\verb|shape|>0$                                &  $\log$ \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|scale|>0$                                &  $\log$ \tabularnewline  
+  \rowcolor{Gray}                             &                               & $\verb|zero-mass|\in(0,1)$                      &  $\text{logit}$ \tabularnewline 
+  Wrapped Cauchy (``\verb|wrpcauchy|'')       & $z_t\in(-\pi,\pi]$            & $\verb|mean|\in(-\pi,\pi]$                      &  $\tan(\verb|mean|/2)$ \tabularnewline  
+                                              &                               & $\verb|concentration|\in(0,1)$                  &  $\text{logit}$ \tabularnewline 
   \bottomrule
   \end{tabular}
   \footnotesize{$^1$Link functions $(g)$ relate natural scale parameters $({\boldsymbol \theta})$ to a $T \times K$ design matrix $({\mathbf X})$ and $K-$vector of working scale parameters $(\boldsymbol{\beta}\in \mathbb{R}^K)$ such that $g({\boldsymbol \theta})={\mathbf X}\boldsymbol{\beta}$. %In circular-circular regression models for the mean of angular distributions, we have $\theta_t = {\text atan2}( \sum_{k=1}^K z_{t,k} \sin(x_{t,k} \beta_k),1+\sum_{k=1}^K z_{t,k} \cos(x_{t,k} \beta_k))$, where $Z$ is a $T \times K$ matrix of positive real covariates (e.g. wind speed) and $X$ is a $T \times K$ matrix composed of angular covariates (e.g. wind direction).
@@ -238,29 +247,32 @@ The state transition probabilities $({\mathbf \Gamma}^{(t)})$ and initial distri
 
 \begin{small}
 \begin{table}
-  \caption{\label{tab:multipdfs} Multivariate data stream $({\mathbf z})$ probability distributions, natural parameters, and default link functions for covariate modelling. If user-specified bounds are provided, then custom link functions are used instead of the defaults (see package documentation for further details). Users seeking additional multivariate probability distributions are encouraged to contact the authors.}
+  \caption{\label{tab:multipdfs} Multivariate data stream $({\mathbf z})$ probability distributions, natural parameters, and default link functions for covariate modelling. If user-specified parameter bounds are provided, then custom link functions are used instead of the defaults (see package documentation for further details). Users seeking additional multivariate probability distributions are encouraged to contact the authors.}
   \begin{tabular}{llll}
   \toprule
-  Distribution & Support & Parameters & Link function\footnotemark \tabularnewline
+  Distribution                                          & Support                         & Parameters                       & Link function$^1$ \tabularnewline
   \midrule
-  Bivariate normal (``\verb|mvnorm2|'')                 & ${\mathbf z_t}\in{\rm I\!R}^2$  & $\verb|mean.x|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|mean.y|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                                    &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline                                                                  &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline  
+  \rowcolor{Gray} Bivariate normal (``\verb|mvnorm2|'') & ${\mathbf z_t}\in{\rm I\!R}^2$  & $\verb|mean.x|\in{\rm I\!R}$     &  identity \tabularnewline  
+  \rowcolor{Gray}                                       &                                 & $\verb|mean.y|\in{\rm I\!R}$     &  identity \tabularnewline  
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline                                              
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline  
   Bivariate normal random walk (``\verb|rw_mvnorm2|'')  & ${\mathbf z_t}\in{\rm I\!R}^2$  & $\verb|mean.x|\in{\rm I\!R}$     &  identity \tabularnewline  
                                                         &                                 & $\verb|mean.y|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                                    &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline                                                                  &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline
-  Trivariate normal (``\verb|mvnorm3|'')                & ${\mathbf z_t}\in{\rm I\!R}^3$  & $\verb|mean.x|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|mean.y|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|mean.z|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                                    &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline
-                                                        &                                 & $\verb|sigma.xz|\in{\rm I\!R}$   &  identity \tabularnewline          
-                                                        &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline   
-                                                        &                                 & $\verb|sigma.yz|\in{\rm I\!R}$   &  identity \tabularnewline  
-                                                        &                                 & $\verb|sigma.z|>0$               &  $\log$ \tabularnewline
+                                                        &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                                                                                      &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline                                                                                                                    &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline
+  \rowcolor{Gray} Trivariate normal (``\verb|mvnorm3|'')& ${\mathbf z_t}\in{\rm I\!R}^3$  & $\verb|mean.x|\in{\rm I\!R}$     &  identity \tabularnewline  
+  \rowcolor{Gray}                                       &                                 & $\verb|mean.y|\in{\rm I\!R}$     &  identity \tabularnewline  
+  \rowcolor{Gray}                                       &                                 & $\verb|mean.z|\in{\rm I\!R}$     &  identity \tabularnewline  
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.xz|\in{\rm I\!R}$   &  identity \tabularnewline          
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline   
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.yz|\in{\rm I\!R}$   &  identity \tabularnewline  
+  \rowcolor{Gray}                                       &                                 & $\verb|sigma.z|>0$               &  $\log$ \tabularnewline
   Trivariate normal random walk (``\verb|rw_mvnorm3|'') & ${\mathbf z_t}\in{\rm I\!R}^3$  & $\verb|mean.x|\in{\rm I\!R}$     &  identity \tabularnewline  
                                                         &                                 & $\verb|mean.y|\in{\rm I\!R}$     &  identity \tabularnewline  
                                                         &                                 & $\verb|mean.z|\in{\rm I\!R}$     &  identity \tabularnewline  
-                                                        &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                                    &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline    
+                                                        &                                 & $\verb|sigma.x|>0$               &  $\log$ \tabularnewline                                                                                                                      &                                 & $\verb|sigma.xy|\in{\rm I\!R}$   &  identity \tabularnewline    
                                                         &                                 & $\verb|sigma.xz|\in{\rm I\!R}$   &  identity \tabularnewline 
                                                         &                                 & $\verb|sigma.y|>0$               &  $\log$ \tabularnewline   
                                                         &                                 & $\verb|sigma.yz|\in{\rm I\!R}$   &  identity \tabularnewline  
@@ -321,7 +333,7 @@ fitHaggis <- fitHMM(data = processedHaggis, nbStates = 2,
                     formula = ~ slope + I(slope^2),
                     estAngleMean = list(angle=TRUE))
 @
-Note that many of the arguments in \verb|fitHMM| are lists, with each element of the list corresponding to a data stream.  The list names provided in \verb|dist|, \verb|Par0|, and \verb|estAngleMean| (e.g. `step' and `angle') must therefore have a corresponding column in \verb|data| with the same name.  Additional data streams can be added to the model by simply adding the additional elements to these list arguments (see examples in sections \ref{sec:nfs}, \ref{sec:northernFulmar}, and \ref{sec:pilotWhale}).  
+Note that many of the arguments in \verb|fitHMM| are lists, with each element of the list corresponding to a data stream.  The list names provided in \verb|dist|, \verb|Par0|, and \verb|estAngleMean| (e.g. `step' and `angle') must therefore have a corresponding column in \verb|data| with the same name.  Additional data streams can be included in a multivariate HMM by simply adding the additional elements to these list arguments (see examples in sections \ref{sec:nfs}, \ref{sec:northernFulmar}, and \ref{sec:pilotWhale}).  State-dependent probability distributions with positive support (e.g. gamma, Weibull; see Table \ref{tab:unipdfs}) can be zero-inflated (with additional zero-mass parameters), while the beta distribution can be zero- and/or one-inflated (with additional one-mass parameters).
 
 As seen above, the \verb|formula| argument can include many of the functions and operators commonly used to construct terms in R linear model formulas (e.g. \verb|a*b|, \verb|a:b|, \verb|cos(a)|). The \verb|formulaDelta| argument can be similarly used to specify covariate models for the initial distribution.  The \verb|formula| argument can also be used to specify transition probability matrix models that incorporate cyclical patterns (using the \verb|cosinor| special function; see example in section \ref{sec:elephant}), splines for explaining other more complicated patterns (e.g., \verb|bs| and \verb|ns| functions in the R base package \verb|splines|), and factor variables (e.g., \verb|formula=~ID| for individual-level effects).  By default the \verb|formula| argument applies to all state transition probabilities, but the special functions \verb|state|, \verb|toState|, and \verb|betaCol| allow for state- and parameter-specific formulas to be specified (see examples in sections \ref{sec:greySeal} and \ref{sec:northernFulmar}). While \verb|betaCol| allows a formula to be specified for a specific transition (e.g. state $3 \rightarrow 1$), \verb|state| and \verb|toState| allow a formula to be specified for all transitions from (e.g. $3 \rightarrow 1$, $3 \rightarrow 2$) and to (e.g. state $1 \rightarrow 3$, $2 \rightarrow 3$) specific states, respectively. The \verb|betaCons| argument allows for equality constraints among any of the transition probability parameters (e.g. $\gamma^{(t)}_{12}=\gamma^{(t)}_{21}$; see example in section \ref{sec:northernFulmar}). Specific state transition probabilities can also be fixed to zero (or any other value) using the \verb|fixPar| argument, which can be useful for incorporating more behavioral realism.  For example, \verb|fixPar| can be used to prohibit or enforce switching from one particular state to another (possibly as a function of spatio-temporal covariates). 
 
@@ -1240,9 +1252,8 @@ The data are provided in a Dryad repository, but these will require some additio
 library(sp)
 
 # load data provided by Pirotta et al
-fulmarURL <- "https://datadryad.org/bitstream/handle/10255/dryad.174482/"
-fileName <- "Fulmar_trackingData.csv?sequence=1"
-raw_data <- read.csv(url(paste0(fulmarURL,fileName)),
+fulmarURL <- "https://datadryad.org/stash/downloads/file_stream/45899"
+raw_data <- read.csv(url(fulmarURL),
                      stringsAsFactors = FALSE)
 
 raw_data$ID <- raw_data$tripID
@@ -2323,15 +2334,19 @@ dimnames(DM$angle) <- list(paste0(rep(c("mean_","concentration_"),each=nbStates)
 ### defining start values based on those reported by Adam et al
 hm.mu0 <- c(5.482, 6.786, 14.914)
 hm.sigma0 <- c(4.27, 4.714, 11.242)
+
 ha.mu0 <- c(0.011, -0.299, 0.044)
 ha.kappa0 <- c(1.571, 1.426, 2.15)
+
 vm.mu0 <- vm.sigma0 <- vm.pi0 <- list()
 vm.mu0[[1]] <- c(0.116, 0.303, 0.691)
 vm.mu0[[2]] <- c(0.109, 0.056, 0.351)
 vm.mu0[[3]] <- c(0.125, 0.514, 1.987)
+
 vm.sigma0[[1]] <- c(0.096, 0.261, 0.636)
 vm.sigma0[[2]] <- c(0.043, 0.047, 0.342)
 vm.sigma0[[3]] <- c(0.109, 0.462, 1.878)
+
 vm.pi0[[1]] <- c(0.014, 0.003, 1.050e-06)
 vm.pi0[[2]] <- c(1.791e-08, 0.035, 0.002)
 vm.pi0[[3]] <- c(0.012, 2.933e-04, 3.462e-09)
@@ -2357,7 +2372,57 @@ hierFormula$AddChild("level1", formula=~1)
 hierFormula$AddChild("level2", formula=~cosinor(time, period=24))
 @
 
-All that remains is (optionally) specifying starting values for the initial distribution (\verb|hierDelta|) and t.p.m. (\verb|hierBeta|) parameters, and we are now ready to fit the HHMM:
+All that remains is (optionally) specifying starting values for the initial distribution (\verb|hierDelta|) and t.p.m. (\verb|hierBeta|) parameters, which we'll base on those reported by \cite{AdamEtAl2019} to speed up the optimization:
+<<cod-7a, eval=TRUE, echo=TRUE, cache=TRUE>>=
+hierBeta <- data.tree::Node$new("cod beta")
+hierBeta$AddChild("level1",
+          beta=matrix(c(-18.585, -2.86, -2.551, -1.641, -2.169, -2.415),
+                      nrow=1,
+                      ncol=length(hierStates$children)
+                       *(length(hierStates$children)-1)))
+hierBeta$AddChild("level2")
+hierBeta$level2$AddChild("resForage",
+          beta=matrix(c(-2.562, -3.403,  2.765, -1.607,  2.273,  4.842, 
+                        -0.665,  -0.26, -0.681, -0.149, -2.728, -2.798, 
+                        -0.027,   0.26,  0.191,  0.667,  0.123, -0.262),
+                      nrow=3,
+                      ncol=length(hierStates$resForage$children)
+                       *(length(hierStates$resForage$children)-1),
+                      byrow=TRUE))
+hierBeta$level2$AddChild("mobForage",
+          beta=matrix(c(-2.156, -3.662,   3.01,  0.597, -0.313,  2.897, 
+                         0.067,  -1.22, -0.799, -0.797,   0.15,  0.379, 
+                        -0.112, -0.195, -0.269, -0.215,  1.539,  0.728),
+                      nrow=3,
+                      ncol=length(hierStates$mobForage$children)
+                       *(length(hierStates$mobForage$children)-1),
+                      byrow=TRUE))
+hierBeta$level2$AddChild("transit",  
+          beta=matrix(c(-2.53, -4.279,  2.507, -0.228, 10.803, 12.873, 
+                        -0.04,  1.221, -0.301,  0.284, -0.106, -0.077, 
+                        0.629, -0.226, -0.253, -0.303,  0.011,  0.036),
+                      nrow=3,
+                      ncol=length(hierStates$transit$children)
+                       *(length(hierStates$transit$children)-1),
+                      byrow=TRUE))
+
+hierDelta <- data.tree::Node$new("cod delta")
+hierDelta$AddChild("level1",delta=matrix(c(15.776, 4.78),1))
+hierDelta$AddChild("level2")
+hierDelta$level2$AddChild("resForage",delta=matrix(c(-0.643, -2.416),1))
+hierDelta$level2$AddChild("mobForage",delta=matrix(c(1.181, 0.46),1))
+hierDelta$level2$AddChild("transit",delta=matrix(c(-0.357, -0.624),1))
+
+# check hierarchical model specification and parameters
+checkPar0(codData,
+          hierStates = hierStates,
+          hierDist = hierDist,
+          hierFormula = hierFormula,
+          Par0 = Par, hierBeta = hierBeta, hierDelta = hierDelta,
+          DM = DM, 
+          estAngleMean = list(angle=TRUE))
+@
+\noindent and we are now ready to fit the HHMM:
 <<cod-7, eval=TRUE, echo=FALSE, cache=TRUE, message=FALSE>>=
 Par <- hhmm3Par$Par
 hierBeta <- hhmm3Par$hierBeta
@@ -2378,16 +2443,14 @@ hierDelta <- hhmm3Par$hierDelta
 @
 <<cod-8, eval=FALSE, echo=TRUE>>=
 hhmm <- fitHMM(codData,
-               hierStates=hierStates,
-               hierDist=hierDist,
-               hierFormula=hierFormula,
-               Par0=Par,
-               hierBeta=hierBeta,
-               hierDelta=hierDelta,
-               DM=DM,
+               hierStates = hierStates,
+               hierDist = hierDist,
+               hierFormula = hierFormula,
+               Par0 = Par, hierBeta = hierBeta, hierDelta = hierDelta,
+               DM = DM,
                estAngleMean = list(angle=TRUE))
 
-plot(hhmm,plotCI=TRUE,ask=FALSE)
+plot(hhmm, plotCI=TRUE, ask=FALSE)
 
 # plot stationary distributions and CIs
 plotStationary(hhmm, plotCI=TRUE)
@@ -2626,7 +2689,7 @@ Here we demonstrate how to fit a discrete-time version of the African buffalo re
 \begin{equation*}
   {\boldsymbol \mu}_t \mid S_t=s \sim \mathcal{N}\left( {\boldsymbol \mu}_{t-1}+D({\boldsymbol \mu}_{t-1}){\boldsymbol \beta}^\mu I(s=2),\sigma_s^2 {\mathbf I} \right),
 \end{equation*}
-$I()$ is the indicator function, $\mathbf I$ is a $2 \times 2$ identity matrix, and $D({\boldsymbol \mu}_t)$ is the negative gradient of $d$ evaluated at location ${\boldsymbol \mu}_t$. %$-\left(\frac{\partial d}{\partial x}, \frac{\partial d}{\partial y}\right)$
+where $I()$ is the indicator function, $\mathbf I$ is a $2 \times 2$ identity matrix, and $D({\boldsymbol \mu}_t)$ is the negative gradient of $d$ evaluated at location ${\boldsymbol \mu}_t$. %$-\left(\frac{\partial d}{\partial x}, \frac{\partial d}{\partial y}\right)$
 Thus when the animal is in the charged state (i.e. $S_t=1$), the movement model is a simple random walk. When the animal is in the discharged state (i.e. $S_t=2$), the movement model includes a potential function surface based on distance to nearest surface water \citep[for more on potential functions see][and sections \ref{sec:turtle} and \ref{sec:avoidLand}]{BrillingerEtAl2012,HootenEtAl2017,HootenEtAl2019}. In terms of $\Gamma^{(t)}$, the model for the state-switching dynamics is simply:
 \begin{equation}
   {\mathbf \Gamma^{(t)}} = \begin{bmatrix}
@@ -2686,7 +2749,7 @@ for(layer in 1:ncol(W_mat)){
   names(W_ortho[[layer]]) <- paste0("svd", layer)
 }
 @
-\noindent Note that to (presumably) help with numerical stability, \cite{HootenEtAl2019} orthogonalized the recharge function covariates as above; the resulting recharge function is now $g_t = g_0 + \sum_{j=1}^t w^*_{1,j} \theta_1 + w^*_{2,j} \theta_2$, where $w^*_{1,j}$ and $w^*_{2,j}$ are the transformed intercept and distance indicator covariates.
+\noindent Note that to (presumably) help with numerical stability, \cite{HootenEtAl2019} orthogonalized the recharge function covariates as above; the resulting recharge function is now $g_t = g_0 + \sum_{j=1}^t w^*_{1,j} \theta_1 + w^*_{2,j} \theta_2$, where $w^*_{1,j}$ and $w^*_{2,j}$ are the transformed intercept and distance indicator covariates, respectively.
 
 The buffalo track data were collected from a GPS collar, but the roughly hourly observations were not perfectly regular.% (Figure \ref{fig:buffaloData}). 
 %\begin{figure}[htbp]
@@ -2815,13 +2878,12 @@ bestPar <- getPar(buffaloFit)
     \frac{1}{(1+\exp(\beta_0+g_t\beta_1))} & \frac{\exp(\beta_0+g_t\beta_1)}{(1+\exp(\beta_0+g_t\beta_1))}  \\
     \frac{1}{(1+\exp(\beta_0+g_t\beta_1))} & \frac{\exp(\beta_0+g_t\beta_1)}{(1+\exp(\beta_0+g_t\beta_1))}   
   \end{bmatrix},
-  \label{eq:rechargeTPM2}
 \end{equation*}
 where
 \begin{equation*}
   g_t = g_0 + \sum_{j=1}^t \theta_0 + \text{W\_intercept}_j \theta_1 + \text{W\_near\_sabie}_j \theta_2.
 \end{equation*}
-Using \verb|fixPar|, we fixed $\beta_0=0$ and $\beta_1=-1$. Thus we have removed the Markov property from the state-switching dynamics and ensured that the probability of being in the ``discharged'' state (state 2) decreases as the recharge function $(g_t)$ increases. We also fix $\theta_0=0$ because we do not need the required intercept term in this particular case (an orthogonalized intercept term ``W\_intercept'' is already included as a covariate). With these parameters fixed, we have now specified the exact same state transition model as in Eq. \ref{eq:rechargeTPM1}.
+Using \verb|fixPar|, we fixed $\beta_0=0$ and $\beta_1=-1$. Thus we have removed the Markov property from the state-switching dynamics and ensured that the probability of being in the ``discharged'' state (state 2) decreases as the recharge function $(g_t)$ increases as in Eq. \ref{eq:rechargeTPM1}. We also fix $\theta_0=0$ because we do not need the required intercept term in this particular case (an orthogonalized intercept term ``W\_intercept'' is already included as a covariate). Because we have removed the Markov property from the state-switching dynamics, the initial distribution has no effect on the likelihood; we therefore fixed it (arbitrarily) to \verb|delta=c(0.5,0.5)|.
 
 Now that we have our starting values (``bestPar''), let's fit $28$ imputations of the position process using \verb|MIfitHMM|:
 <<recharge-4, echo=-1, eval=FALSE>>=

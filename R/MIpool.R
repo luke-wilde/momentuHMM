@@ -29,6 +29,9 @@
 #' Note that pooled estimates for \code{timeInStates} and \code{stateProbs} do not include within-model uncertainty and are based entirely on across-model variability.
 #' 
 #' @examples
+#' \dontshow{
+#' set.seed(2,kind="Mersenne-Twister",normal.kind="Inversion")
+#' }
 #' \dontrun{
 #' # Extract data and crawl inputs from miExample
 #' obsData <- miExample$obsData
@@ -135,7 +138,7 @@ MIpool<-function(HMMfits, alpha=0.95, ncores=1, covs=NULL, na.rm=FALSE){
   }
   tmpVar2 <- unique(c(which(unlist(lapply(betaVar,function(x) any(!is.finite(x))))),which(unlist(lapply(betaVar,function(x) any(!is.finite(sqrt(diag(x)))))))))
   if(length(tmpVar2)){
-    warning("working parameter standard errors are not finite for HMM fits ",paste0(goodIndex[tmpVar2],collapse=", "),ifelse(na.rm," and will not be included in pooling"))
+    warning("working parameter standard errors are not finite for HMM fits ",paste0(goodIndex[tmpVar2],collapse=", "),ifelse(na.rm," and will not be included in pooling",""))
     if(na.rm){
       im[tmpVar2] <- NULL
       nsims <- length(im)

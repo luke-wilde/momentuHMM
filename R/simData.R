@@ -6,7 +6,7 @@
 #' @param nbAnimals Number of observed individuals to simulate.
 #' @param nbStates Number of behavioural states to simulate.
 #' @param dist A named list indicating the probability distributions of the data streams. Currently
-#' supported distributions are 'bern', 'beta', 'cat', 'exp', 'gamma', 'lnorm', 'norm', 'mvnorm2' (bivariate normal distribution), 'mvnorm3' (trivariate normal distribution),
+#' supported distributions are 'bern', 'beta', 'cat', 'exp', 'gamma', 'lnorm', 'logis', 'negbinom', 'norm', 'mvnorm2' (bivariate normal distribution), 'mvnorm3' (trivariate normal distribution),
 #' 'pois', 'rw_norm' (normal random walk), 'rw_mvnorm2' (bivariate normal random walk), 'rw_mvnorm3' (trivariate normal random walk), 'vm', 'vmConsensus', 'weibull', and 'wrpcauchy'. For example,
 #' \code{dist=list(step='gamma', angle='vm', dives='pois')} indicates 3 data streams ('step', 'angle', and 'dives')
 #' and their respective probability distributions ('gamma', 'vm', and 'pois').
@@ -929,7 +929,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
       if(inherits(spatialCovs[[j]],c("RasterStack","RasterBrick"))){
         zname <- names(attributes(spatialCovs[[j]])$z)
         zvalues <- raster::getZ(spatialCovs[[j]])
-        spCov <- spCov[1,which(zvalues==covs[[zname]][1])]
+        spCov <- spCov[1,which(zvalues==tmpCovs[[zname]][1])]
       }
       tmpCovs[[spatialcovnames[j]]]<-spCov
     }
@@ -1159,7 +1159,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
             if(inherits(spatialCovs[[j]],c("RasterStack","RasterBrick"))){
               zname <- names(attributes(spatialCovs[[j]])$z)
               zvalues <- raster::getZ(spatialCovs[[j]])
-              spCov <- spCov[1,which(zvalues==covs[[zname]][1])]
+              spCov <- spCov[1,which(zvalues==subCovs[1,zname])]
             }
             subSpatialcovs[1,j]<-spCov
             if(spatialcovnames[j] %in% angleCovs) {
@@ -1365,7 +1365,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
               if(inherits(spatialCovs[[j]],c("RasterStack","RasterBrick"))){
                 zname <- names(attributes(spatialCovs[[j]])$z)
                 zvalues <- raster::getZ(spatialCovs[[j]])
-                spCov <- spCov[1,which(zvalues==covs[[zname]][k+1])]
+                spCov <- spCov[1,which(zvalues==subCovs[k+1,zname])]
               }
               subSpatialcovs[k+1,j]<-spCov
               if(spatialcovnames[j] %in% angleCovs) {

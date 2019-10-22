@@ -1,28 +1,16 @@
-# momentuHMM  [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=develop)](https://travis-ci.org/bmcclintock/momentuHMM) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/momentuHMM)](https://cran.r-project.org/package=momentuHMM) [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/momentuHMM)](https://cran.r-project.org/package=momentuHMM)
+# momentuHMM  [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=progressBar)](https://travis-ci.org/bmcclintock/momentuHMM) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/momentuHMM)](https://cran.r-project.org/package=momentuHMM) [![CRAN_Downloads](https://cranlogs.r-pkg.org/badges/grand-total/momentuHMM)](https://cran.r-project.org/package=momentuHMM)
 
 R package for Maximum likelihood analysis Of animal MovemENT behavior Using multivariate Hidden Markov Models 
 
-Get started with the vignette: [Guide to using momentuHMM](https://github.com/bmcclintock/momentuHMM/tree/develop/vignettes/momentuHMM.pdf)
+Get started with the vignette: [Guide to using momentuHMM](https://github.com/bmcclintock/momentuHMM/tree/progressBar/vignettes/momentuHMM.pdf)
 
 ## Installation instructions
 
-### CRAN release
-The package is available at [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/momentuHMM)](https://cran.r-project.org/package=momentuHMM). To install it:
-``` R
-install.packages("momentuHMM")
-```
-
 ### Install from Github
-To install the latest (stable) version of the package from Github: [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=master)](https://travis-ci.org/bmcclintock/momentuHMM)
+To install the latest (**unstable**) version of the package that includes a progress bar feature in computationlly-intensive functions: [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=progressBar)](https://travis-ci.org/bmcclintock/momentuHMM)
 ``` R
 library(remotes)
-install_github("bmcclintock/momentuHMM")
-```
-
-To install the latest (**unstable**) version of the package from Github: [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=develop)](https://travis-ci.org/bmcclintock/momentuHMM)
-``` R
-library(remotes)
-install_github("bmcclintock/momentuHMM@develop")
+install_github("bmcclintock/momentuHMM@progressBar")
 ```
 
 ## References

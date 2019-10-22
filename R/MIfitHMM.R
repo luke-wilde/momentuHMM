@@ -132,7 +132,9 @@ MIfitHMM <- function(miData, ...) {
 #' @seealso \code{\link{crawlWrap}}, \code{\link[crawl]{crwPostIS}}, \code{\link[crawl]{crwSimulator}}, \code{\link{fitHMM}}, \code{\link{getParDM}}, \code{\link{MIpool}}, \code{\link{prepData}} 
 #' 
 #' @examples
-#' 
+#' \dontshow{
+#' set.seed(3,kind="Mersenne-Twister",normal.kind="Inversion")
+#' }
 #' # Don't run because it takes too long on a single core
 #' \dontrun{
 #' # extract simulated obsData from example data
@@ -479,10 +481,13 @@ MIfitHMM.default<-function(miData,nSims, ncores = 1, poolEstimates = TRUE, alpha
   
   fits <- HMMfits(fits)
   
-  if(poolEstimates & nSims>1) out <- miHMM(list(miSum=MIpool(fits,alpha=alpha,ncores=ncores,na.rm=na.rm),HMMfits=fits))
-    else out <- fits
+  if(poolEstimates & nSims>1){ 
+    mipool <- tryCatch(MIpool(fits,alpha=alpha,ncores=ncores,na.rm=na.rm),error=function(e) e)
+    if(!inherits(mipool,"error")) fits <- miHMM(list(miSum=mipool,HMMfits=fits))
+    else warning("MIpool failed: ",mipool)
+  }
   
-  out
+  return(fits)
 }
 
 #' @rdname MIfitHMM
@@ -784,10 +789,13 @@ MIfitHMM.hierarchical<-function(miData,nSims, ncores = 1, poolEstimates = TRUE, 
   fits <- HMMfits(fits)
   class(fits) <- append(class(fits),"hierarchical")
   
-  if(poolEstimates & nSims>1) {
-    out <- miHMM(list(miSum=MIpool(fits,alpha=alpha,ncores=ncores,na.rm=na.rm),HMMfits=fits))
-    class(out) <- append(class(out),"hierarchical")
-  } else out <- fits
+  if(poolEstimates & nSims>1){ 
+    mipool <- tryCatch(MIpool(fits,alpha=alpha,ncores=ncores,na.rm=na.rm),error=function(e) e)
+    if(!inherits(mipool,"error")) {
+      fits <- miHMM(list(miSum=mipool,HMMfits=fits))
+      class(fits) <- append(class(fits),"hierarchical")
+    } else warning("MIpool failed: ",mipool)
+  }
   
-  out
+  return(fits)
 }

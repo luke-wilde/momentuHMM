@@ -248,6 +248,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dnbinom_rcpp
+arma::colvec dnbinom_rcpp(NumericVector x, arma::mat mu, arma::mat size);
+RcppExport SEXP _momentuHMM_dnbinom_rcpp(SEXP xSEXP, SEXP muSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(dnbinom_rcpp(x, mu, size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dlogis_rcpp
+arma::colvec dlogis_rcpp(NumericVector x, arma::mat location, arma::mat scale);
+RcppExport SEXP _momentuHMM_dlogis_rcpp(SEXP xSEXP, SEXP locationSEXP, SEXP scaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type location(locationSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(dlogis_rcpp(x, location, scale));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dt_rcpp
+arma::colvec dt_rcpp(NumericVector x, arma::mat df, arma::mat ncp);
+RcppExport SEXP _momentuHMM_dt_rcpp(SEXP xSEXP, SEXP dfSEXP, SEXP ncpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ncp(ncpSEXP);
+    rcpp_result_gen = Rcpp::wrap(dt_rcpp(x, df, ncp));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getDM_rcpp
 arma::cube getDM_rcpp(arma::cube X, arma::mat covs, CharacterVector DM, unsigned int nr, unsigned int nc, CharacterVector cov, unsigned int nbObs);
 RcppExport SEXP _momentuHMM_getDM_rcpp(SEXP XSEXP, SEXP covsSEXP, SEXP DMSEXP, SEXP nrSEXP, SEXP ncSEXP, SEXP covSEXP, SEXP nbObsSEXP) {
