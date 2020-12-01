@@ -4,9 +4,10 @@ formatHierFormula <- function(data,hierFormula,hierStates){
   lLevels <- sort(hierFormula$Get("name",filterFun=function(x) x$level==2))[c(1,1+rep(2:1,hierStates$height-2)+rep(seq(0,(hierStates$height-3)*2,2),each=2))]
   formulaTerms <- formTerms <- recTerms <- list()
   recharge <- NULL
+  betaRef <- rep(hierStates$Get(function(x) Aggregate(x,"state",min),filterFun=function(x) x$level==2),times=hierStates$Get("leafCount",filterFun=function(x) x$level==2))
   if(!is.null(data)) factorTerms <- names(data)[which(unlist(lapply(data,function(x) inherits(x,"factor"))))]
   for(j in lLevels){
-    newForm <- newFormulas(hierFormula[[j]]$formula, length(hierStates$Get("state",filterFun=data.tree::isLeaf)),hierarchical=TRUE)
+    newForm <- newFormulas(hierFormula[[j]]$formula, length(hierStates$Get("state",filterFun=data.tree::isLeaf)), betaRef, hierarchical=TRUE)
     formulaTerms[[j]] <- newForm$formterms
     if(any(grepl("level",formulaTerms[[j]]))) stop("hierFormula$",j,"$formula cannot include 'level'")
     if(is.null(data)) {
@@ -24,23 +25,23 @@ formatHierFormula <- function(data,hierFormula,hierStates){
           if(is.null(data)) recTerms <- paste0("I((level=='",gsub("level","",j),"')*1):",as.character(recharge[[j]][[parm]])[-1])
           else recTerms <- getFactorTerms(rechargeTerms,factorTerms,recharge[[j]][[parm]],data,j)
         } else {
-          if(parm=="theta" & !attributes(terms(recharge[[j]]$theta))$intercept) stop("invalid recharge model for ",j," -- theta must include an intercept and at least 1 covariate")
+          if(parm=="theta" & !attributes(stats::terms(recharge[[j]]$theta))$intercept) stop("invalid recharge model for ",j," -- theta must include an intercept and at least 1 covariate")
           recTerms <- paste0("I((level=='",gsub("level","",j),"')*1)")
         }
         form <- paste0("~0+",paste0(unlist(recTerms),collapse = " + "))
-        recharge[[j]][[parm]] <- as.formula(form)
+        recharge[[j]][[parm]] <- stats::as.formula(form)
       }
       formTerms[[j]] <- c(formTerms[[j]],paste0("I((level=='",gsub("level","",j),"')*1):recharge(g0=~",as.character(recharge[[j]]$g0)[-1],", theta=~",as.character(recharge[[j]]$theta)[-1],")"))
       if(!is.null(data)) data[[paste0("recharge",gsub("level","",j))]] <- rep(0,nrow(data))
     }
   }
   form <- paste0("~ 0 + ",paste0(unlist(formTerms),collapse = " + "))
-  form <- as.formula(form)
+  form <- stats::as.formula(form)
   return(list(formula=form,data=data,recharge=recharge))
 }
 
 getFactorTerms <- function(formulaTerms,factorTerms,formula,data,level){
-  mm<-model.matrix(formula,data)
+  mm<-stats::model.matrix(formula,data)
   as <- attr(mm,"assign")
   colmm <- colnames(mm)
   for(jj in 1:length(colmm)){

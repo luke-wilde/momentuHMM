@@ -43,7 +43,7 @@ stationary.momentuHMM <- function(model, covs, covIndex = NULL)
         stop("No state probabilities (1-state model).")
 
     formula<-model$conditions$formula
-    newForm <- newFormulas(formula,nbStates,hierarchical=TRUE)
+    newForm <- newFormulas(formula,nbStates,model$conditions$betaRef,hierarchical=TRUE)
     newformula <- newForm$newformula
     recharge <- newForm$recharge
     
@@ -77,7 +77,7 @@ stationary.momentuHMM <- function(model, covs, covIndex = NULL)
     }
     
     if(!is.null(recharge)){
-      reForm <- formatRecharge(nbStates,formula,data=model$data,par=list(g0=model$mle$g0,theta=model$mle$theta))
+      reForm <- formatRecharge(nbStates,formula,model$conditions$betaRef,data=model$data,par=list(g0=model$mle$g0,theta=model$mle$theta))
       newformula <- reForm$newformula
       recharge <- reForm$recharge
       hierRecharge <- reForm$hierRecharge
@@ -100,8 +100,8 @@ stationary.momentuHMM <- function(model, covs, covIndex = NULL)
         testCovs$level <- model$data$level[1]
       }
       # check that all covariates are provided
-      ck1 <- tryCatch(model.matrix(recharge$theta,testCovs),error=function(e) e)
-      ck2 <- tryCatch(model.matrix(tmpSplineInputs$formula,testCovs),error=function(e) e)
+      ck1 <- tryCatch(stats::model.matrix(recharge$theta,testCovs),error=function(e) e)
+      ck2 <- tryCatch(stats::model.matrix(tmpSplineInputs$formula,testCovs),error=function(e) e)
       if(inherits(ck1,"error")) stop("covs not specified correctly -- ",ck1)
       if(inherits(ck2,"error")) stop("covs not specified correctly -- ",ck2)
     } else {
@@ -121,7 +121,7 @@ stationary.momentuHMM <- function(model, covs, covIndex = NULL)
         tmpSplineInputs$covs <- data.frame(tmpSplineInputs$covs[rep(1:nrow(tmpSplineInputs$covs),nlevels(model$data$level)),,drop=FALSE],level=rep(levels(model$data$level),each=nrow(tmpSplineInputs$covs)))
         class(tmpSplineInputs$covs) <- append("hierarchical",class(tmpSplineInputs$covs))
       }
-      covMat <- model.matrix(tmpSplineInputs$formula,data=tmpSplineInputs$covs)
+      covMat <- stats::model.matrix(tmpSplineInputs$formula,data=tmpSplineInputs$covs)
       if(!is.null(covIndex)) {
         if(!is.numeric(covIndex) || any(covIndex<1 | covIndex>nrow(covMat))) stop("covIndex can only include integers between 1 and ",nrow(covMat))
       } else covIndex <- 1:nrow(covMat)

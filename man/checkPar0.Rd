@@ -23,10 +23,8 @@ checkPar0(data, ...)
   mixtures = 1,
   formulaPi = NULL,
   DM = NULL,
-  cons = NULL,
   userBounds = NULL,
   workBounds = NULL,
-  workcons = NULL,
   betaCons = NULL,
   betaRef = NULL,
   deltaCons = NULL,
@@ -85,8 +83,8 @@ regression on the mean of circular distributions ('vm' and 'wrpcauchy') for turn
 
 \item{formulaDelta}{Regression formula for the initial distribution.}
 
-\item{stationary}{\code{FALSE} if there are covariates in \code{formula} or \code{formulaDelta}. If \code{TRUE}, the initial distribution is considered
-equal to the stationary distribution.}
+\item{stationary}{\code{FALSE} if there are time-varying covariates in \code{formula} or any covariates in \code{formulaDelta}. If \code{TRUE}, the initial distribution is considered
+equal to the stationary distribution. Default: \code{FALSE}.}
 
 \item{mixtures}{Number of mixtures for the state transition probabilities.}
 
@@ -96,16 +94,10 @@ Note that only the covariate values from the first row for each individual ID in
 \item{DM}{An optional named list indicating the design matrices to be used for the probability distribution parameters of each data 
 stream.}
 
-\item{cons}{Deprecated: please use \code{workBounds} instead. An optional named list of vectors specifying a power to raise parameters corresponding to each column of the design matrix 
-for each data stream.}
-
 \item{userBounds}{An optional named list of 2-column matrices specifying bounds on the natural (i.e, real) scale of the probability 
 distribution parameters for each data stream.}
 
 \item{workBounds}{An optional named list of 2-column matrices specifying bounds on the working scale of the probability distribution, transition probability, and initial distribution parameters.}
-
-\item{workcons}{Deprecated: please use \code{workBounds} instead. An optional named list of vectors specifying constants to add to the regression coefficients on the working scale for 
-each data stream.}
 
 \item{betaCons}{Matrix of the same dimension as \code{beta0} composed of integers identifying any equality constraints among the t.p.m. parameters.}
 

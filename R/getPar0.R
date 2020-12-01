@@ -19,7 +19,8 @@ getPar0 <- function(model, ...) {
 #' regression on the mean of circular distributions ('vm' and 'wrpcauchy') for turning angles are to be used in the new model.  See \code{\link{fitHMM}}. Default: \code{circularAngleMean=model$conditions$circularAngleMean}
 #' @param formula Regression formula for the transition probability covariates of the new model (see \code{\link{fitHMM}}).  Default: \code{formula=model$conditions$formula}.
 #' @param formulaDelta Regression formula for the initial distribution covariates of the new model (see \code{\link{fitHMM}}).  Default: \code{formulaDelta=model$conditions$formulaDelta}.
-#' @param stationary FALSE if there are covariates in formula or formulaDelta. If TRUE, the initial distribution is considered equal to the stationary distribution. Default: FALSE.
+#' @param stationary \code{FALSE} if there are time-varying covariates in \code{formula} or any covariates in \code{formulaDelta}. If \code{TRUE}, the initial distribution is considered
+#' equal to the stationary distribution. Default: \code{FALSE}.
 #' @param mixtures Number of mixtures for the state transition probabilities  (see \code{\link{fitHMM}}). Default: \code{formula=model$conditions$mixtures}.
 #' @param formulaPi Regression formula for the mixture distribution probabilities (see \code{\link{fitHMM}}). Default: \code{formula=model$conditions$formulaPi}. 
 #' @param DM Named list indicating the design matrices to be used for the probability distribution parameters of each data stream in the new model (see \code{\link{fitHMM}}). Only parameters with design matrix column names that match those in model$conditions$fullDM are extracted, so care must be taken in naming columns if any elements of \code{DM}
@@ -109,6 +110,7 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
     model$CIbeta <- tryCatch(CIbeta(model),error=function(e) e)
   }
   
+  nbAnimals <- length(unique(model$data$ID))
   dist<-model$conditions$dist
   Par<-model$mle
   zeroInflation<-model$conditions$zeroInflation
@@ -176,7 +178,7 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
     if(is.null(DM[[i]])) Par[[i]]<-c(t(model$mle[[i]][,which(colnames(model$mle[[i]]) %in% stateNames)]))
   }
   
-  DMinputs<-getDM(model$data,DM,dist,nbStates,p$parNames,p$bounds,Par,cons=NULL,workcons=NULL,zeroInflation,oneInflation,circularAngleMean,FALSE)$fullDM
+  DMinputs<-getDM(model$data,DM,dist,nbStates,p$parNames,p$bounds,Par,zeroInflation,oneInflation,circularAngleMean,FALSE)$fullDM
   
   parCount<- lapply(model$conditions$fullDM,ncol)
   for(i in distnames[!unlist(lapply(model$conditions$circularAngleMean,isFALSE))]){
@@ -204,7 +206,7 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
       }
       if(any(newparmNames %in% parmNames)){
         if(is.miSum(model))
-          tmpPar[match(parmNames,newparmNames,nomatch=0)] <- nw2w((model$CIbeta[[i]]$est-model$conditions$workcons[[i]])^(1/model$conditions$cons[[i]]),model$conditions$workBounds[[i]])[parmNames %in% newparmNames]#model$CIbeta[[i]]$est[parmNames %in% newparmNames]
+          tmpPar[match(parmNames,newparmNames,nomatch=0)] <- nw2w(model$CIbeta[[i]]$est,model$conditions$workBounds[[i]])[parmNames %in% newparmNames]#model$CIbeta[[i]]$est[parmNames %in% newparmNames]
         else
           tmpPar[match(parmNames,newparmNames,nomatch=0)] <- model$mod$estimate[parindex[[i]]+1:parCount[[i]]][parmNames %in% newparmNames]
       }
@@ -225,7 +227,7 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
   }
   
   if(nbStates>1){
-    reForm <- formatRecharge(nbStates,formula,model$data)
+    reForm <- formatRecharge(nbStates,formula,model$conditions$betaRef,model$data)
     formulaStates <- reForm$formulaStates
     formterms <- reForm$formterms
     newformula <- reForm$newformula
@@ -236,10 +238,9 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
     if(!is.null(recharge)){
       model$data <- cbind(model$data,reForm$newdata)
     }
-    betaNames <- colnames(model.matrix(newformula,model$data))
+    betaNames <- colnames(stats::model.matrix(newformula,model$data))
     
-    if((length(betaNames)-1) | (ncol(model.matrix(formDelta,model$data))-1)) stationary <- FALSE
-    else if(is.null(stationary)) stationary <- model$conditions$stationary
+    if(((length(betaNames)-1) | (ncol(stats::model.matrix(formDelta,model$data))-1)) & !(nbAnimals==nrow(unique(reForm$covs)) & stationary)) stationary <- FALSE
     
     betaNames <- paste0(rep(betaNames,mixtures),"_mix",rep(1:mixtures,each=length(betaNames)))
     
@@ -248,6 +249,9 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
     tmpPar <- matrix(0,length(betaNames),nbStates*(nbStates-1))
     #betaRef <- model$conditions$betaRef
     #if(length(model$stateNames)==1) tmpPar[1,] <- rep(-1.5,nbStates*(nbStates-1))
+    
+    if(length(betaRef)!=nbStates) stop("dimension mismatch between nbStates and betaRef")
+    
     columns <- NULL
     for(i in 1:nbStates){
       for(j in 1:nbStates) {
@@ -259,8 +263,6 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
     }
     colnames(tmpPar) <- columns
     rownames(tmpPar) <- betaNames
-    
-    if(length(betaRef)!=nbStates) stop("dimension mismatch between nbStates and betaRef")
     
     if(length(which(model$stateNames %in% stateNames))>1){
       for(i in match(model$stateNames,stateNames,nomatch=0)){#which(model$stateNames %in% stateNames)){
@@ -278,21 +280,21 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
       }
     }
     for(state in 1:(nbStates*(nbStates-1))){
-      noBeta<-which(match(colnames(model.matrix(newformula,model$data)),colnames(model.matrix(formulaStates[[state]],model$data)),nomatch=0)==0)
+      noBeta<-which(match(colnames(stats::model.matrix(newformula,model$data)),colnames(model.matrix(formulaStates[[state]],model$data)),nomatch=0)==0)
       if(length(noBeta)) tmpPar[noBeta,state] <- 0
     }
     Par$beta<-tmpPar
     if(mixtures==1){
-      betaNames <- colnames(model.matrix(newformula,model$data))
+      betaNames <- colnames(stats::model.matrix(newformula,model$data))
       rownames(Par$beta) <- betaNames
     }
     if(setequal(colnames(model$mle$delta),stateNames) & nbStates>1 & !stationary) {
       
-      deltaNames <- colnames(model.matrix(formDelta,model$data))
+      deltaNames <- colnames(stats::model.matrix(formDelta,model$data))
       nbDeltaCovs <- length(deltaNames)-1
       deltaNames <- paste0(rep(deltaNames,mixtures),"_mix",rep(1:mixtures,each=length(deltaNames)))
         
-      if(!length(attr(terms.formula(formDelta),"term.labels")) & is.null(model$conditions$formulaDelta) & is.null(formulaDelta) & model$conditions$mixtures==mixtures & !model$conditions$stationary){
+      if(!length(attr(stats::terms.formula(formDelta),"term.labels")) & is.null(model$conditions$formulaDelta) & is.null(formulaDelta) & model$conditions$mixtures==mixtures & !model$conditions$stationary){
         Par$delta<-matrix(getPar(model)$delta,nrow=mixtures)[,match(colnames(model$mle$delta),stateNames)]
       } else {
         if(model$conditions$mixtures==1 & !model$conditions$stationary) rownames(model$CIbeta$delta$est) <- paste0(rep(rownames(model$CIbeta$delta$est),model$conditions$mixtures),"_mix",rep(1:model$conditions$mixtures,each=length(rownames(model$CIbeta$delta$est))))
@@ -329,7 +331,7 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
           }
         }
         if(mixtures==1) {
-          deltaNames <- colnames(model.matrix(formDelta,model$data))
+          deltaNames <- colnames(stats::model.matrix(formDelta,model$data))
           rownames(delta) <- deltaNames
           if(!nbDeltaCovs) delta <- c(delta)
         }
@@ -337,13 +339,16 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
       }
     } else {
       Par$delta<-NULL
+      if(nbStates>1 & !stationary){
+        warning("delta could not be specified; set manually if so desired")
+      }
     }
     if(!is.null(recharge)){
       parmNames <- names(model$mle$g0)
       
       forms <- expandRechargeFormulas(recharge)
       
-      g0Names <- colnames(model.matrix(forms$g0,model$data))
+      g0Names <- colnames(stats::model.matrix(forms$g0,model$data))
       g0 <- rep(0,length(g0Names))
       if(any(g0Names %in% parmNames)){
         if(is.miSum(model))
@@ -353,7 +358,7 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
       }
       names(g0) <- g0Names
       parmNames <- names(model$mle$theta)
-      thetaNames <- colnames(model.matrix(forms$theta,model$data))
+      thetaNames <- colnames(stats::model.matrix(forms$theta,model$data))
       theta <- rep(0,length(thetaNames))
       if(any(thetaNames %in% parmNames)){
         if(is.miSum(model))
@@ -365,10 +370,10 @@ getPar0.default <- function(model,nbStates=length(model$stateNames),estAngleMean
       Par$beta <- list(beta=Par$beta,g0=g0,theta=theta)
     }
     if(mixtures>1) {
-      if(!length(attr(terms.formula(formPi),"term.labels")) & is.null(model$conditions$formulaPi) & is.null(formulaPi) & model$conditions$mixtures==mixtures){
+      if(!length(attr(stats::terms.formula(formPi),"term.labels")) & is.null(model$conditions$formulaPi) & is.null(formulaPi) & model$conditions$mixtures==mixtures){
         Par$pi<-model$mle$pi[1,]
       } else {
-        piNames <- colnames(model.matrix(formPi,model$data))
+        piNames <- colnames(stats::model.matrix(formPi,model$data))
         nbPiCovs <- length(piNames)-1
         if(all(grepl("(Intercept)",piNames)) & is.null(formulaPi)){
           tmp <- rep(0,mixtures)

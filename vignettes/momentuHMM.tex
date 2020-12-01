@@ -163,7 +163,7 @@
 
 \noindent \textbf{Summary}\\
 \textbf{1.} Discrete-time hidden Markov models (HMMs) have become an immensely popular tool for inferring latent animal behaviors from telemetry data, largely because they are relatively fast and easy to implement when data streams are observed without error and at regular time intervals. While movement HMMs typically rely solely on location data, auxiliary biotelemetry and environmental data are powerful and readily-available resources for incorporating much more behavioral realism and inferring ecological relationships that would otherwise be difficult or impossible to infer from location data alone.  However, there is a paucity of generalized user-friendly software available for implementing (multivariate) HMMs of animal movement. Furthermore, location measurement error, temporal irregularity, and other forms of missing data are often pervasive in telemetry studies (particularly in marine systems).\\ %and the incorporation of uncertainty attributable to location measurement error or missing data typically requires fitting HMMs using custom and computationally-demanding model fitting techniques, such as Markov chain Monte Carlo.\\ 
-\textbf{2.} Here we provide a guide to using an open-source R package, \verb|momentuHMM| version 1.5.0%(Maximum likelihood analysis Of animal MovemENT behavior Using multivariate Hidden Markov Models)
+\textbf{2.} Here we provide a guide to using an open-source R package, \verb|momentuHMM| version 1.5.2%(Maximum likelihood analysis Of animal MovemENT behavior Using multivariate Hidden Markov Models)
 , that addresses many of the deficiencies in existing software.  Features for multivariate HMMs in \verb|momentuHMM| (pronounced ``momentum'') include: 1) tools for data pre-processing and visualization; 2) user-specified probability distributions for an unlimited number of data streams and latent behavior states, such as those based on location (e.g., step length, turning angle) and auxiliary biotelemetry data (e.g., from pressure, conductivity, heart rate, or motion sensors); 3) biased and correlated random walk movement models, including ``activity centers'' associated with attractive or repulsive forces; 4) user-specified design matrices and constraints for covariate modelling of initial distribution, state transition probability, and probability distribution parameters using linear model formulas familiar to most R users; 5) multiple imputation methods that account for observation error attributable to measurement error and temporally-irregular or missing data; 6) seamless integration of spatio-temporal covariate raster data; 7) cosinor and spline regression formulas for cyclical (e.g., daily, seasonal) and other complicated patterns; 8) discrete individual-level random effects on state transition probabilities; 9) hierarchical hidden Markov models for data streams and/or state switching at multiple time scales; 10) ``recharge'' models for an aggregated physiological process associated with state switching in heterogeneous environments; 11) model checking and selection; and 12) data simulation capabilities for study design, power analyses and assessing model performance, including simulation of location data subject to movement constraints (e.g. land for marine animals), temporal irregularity, and/or measurement error.\\ 
 \textbf{3.} After providing a brief introduction to (multivariate) HMMs for telemetry data, we demonstrate some of the capabilities of \verb|momentuHMM| using real-world examples. This brief tutorial includes workflows for data formatting, model specification, model fitting, and diagnostics.\\
 \textbf{4.} While many of the features of \verb|momentuHMM| were motivated by animal movement data, the package can be used for analyzing any type of data that is amenable to (multivariate) HMMs. Practitioners interested in additional features for \verb|momentuHMM| are encouraged to contact the authors.\\
@@ -198,7 +198,7 @@ While statisticians have been applying HMMs to telemetry data for decades, R \ci
 
 To address these deficiencies in existing software, we developed a user-friendly R package, \verb|momentuHMM| (Maximum likelihood analysis Of animal MovemENT behavior Using multivariate Hidden Markov Models), intended for practitioners wishing to implement more flexible and realistic (multivariate) HMM analyses of animal movement while accounting for common challenges associated with telemetry data \citep{McClintockMichelot2018}. Features for multivariate HMM analyses in \verb|momentuHMM| include: 1) tools for data pre-processing and visualization; 2) user-specified probability distributions for an unlimited number of data streams and latent behavior states; 3) biased and correlated random walk movement models, including ``activity centers'' associated with attractive or repulsive forces \citep[e.g.][]{McClintockEtAl2012}; 4) user-specified design matrices and constraints for covariate modelling of state transition probability and probability distribution parameters using linear model formulas familiar to most R users; 5) multiple imputation methods that account for observation error attributable to measurement error and temporally-irregular or missing data \citep{HootenEtAl2017,McClintock2017}; 6) seamless integration of spatio-temporal environmental covariate data (e.g., wind direction, forest cover, sea ice concentration) using the \verb|raster| package \citep{Hijmans2016}; 7) cosinor \citep[e.g.][]{Cornelissen2014} and spline regression formulas for cyclical and other complicated behavioral patterns; 8) discrete individual-level random effects on state transition probabilities \citep[e.g.][]{DeRuiterEtAl2017}; 9) hierarchical hidden Markov models \citep[e.g.][]{Leos-BarajasEtAl2017,AdamEtAl2019} for data streams and/or state switching at multiple time scales; 10) ``recharge'' models for an aggregated physiological process associated with state switching in heterogeneous environments \citep{HootenEtAl2019}; 11) model checking and selection; and 12) data simulation capabilities for study design, power analyses and assessing model performance, including simulation of location data subject to movement constraints (e.g. land for marine animals), temporal irregularity, and/or measurement error. 
 
-In the following tutorial, we demonstrate some of the capabilities of \verb|momentuHMM| using real-world examples, including an example of periodic cycles in African elephant movement, a 3-state (``resting'', ``foraging'', ``transit'') northern fur seal example incorporating auxiliary dive activity data \citep{McClintockEtAl2014b}, a loggerhead turtle example relating ``foraging'' and ``transit'' movements to ocean surface currents, a 5-state grey seal example incorporating biased movements toward haul-out and foraging locations \citep{McClintockEtAl2012}, a 4-state (``outbound'', ``searching'', ``foraging'', ``inbound'') southern elephant seal example with biased movements toward and away from a colony \citep{MichelotEtAl2017}, a 3-state (``resting'', ``foraging'', ``transit'') harbour seal example using population-level constraints on movement parameters \citep{McClintockEtAl2013c}, a 6-state northern fulmar example incorporating biased movements relative to both static (i.e. colony) and dynamic (i.e. fishing vessels) activity centers \citep{PirottaEtAl2018}, a 4-state long-finned pilot whale example including individual-level random effects on state transition probabilities \citep{IsojunnoEtAl2017}, and hierarchical HMMs fitted to harbor porpoise, garter snake, Atlantic cod, and horn shark data \citep{Leos-BarajasEtAl2017,AdamEtAl2019}, and a recharge dynamics model for African buffalo movements in a heterogeneous environment \citep{HootenEtAl2019}. Using simulated data, we also demonstrate how the group dynamic model of \cite{LangrockEtAl2014} can be implemented using \verb|momentuHMM|. Finally, we demonstrate how to simulate movement subject to barriers or other constraints (e.g. land for marine animals) using potential functions \citep[e.g.][]{BrillingerEtAl2012}. This brief tutorial includes workflows for data formatting, model specification, model fitting, and diagnostics. While many of the features of \verb|momentuHMM| were motivated by animal movement data, the package can be used for analyzing any type of data that is amenable to (multivariate) HMMs.  Additional information, including help files, data, examples, and package usage is available by downloading the \verb|momentuHMM| package from CRAN (\url{https://cran.r-project.org}) or GitHub (\url{https://github.com/bmcclintock/momentuHMM}). We ask that users please submit bug reports, questions, and other issues to GitHub (\url{https://github.com/bmcclintock/momentuHMM/issues}). This article describes \verb|momentuHMM| version 1.5.0.
+In the following tutorial, we demonstrate some of the capabilities of \verb|momentuHMM| using real-world examples, including an example of periodic cycles in African elephant movement, a 3-state (``resting'', ``foraging'', ``transit'') northern fur seal example incorporating auxiliary dive activity data \citep{McClintockEtAl2014b}, a loggerhead turtle example relating ``foraging'' and ``transit'' movements to ocean surface currents, a 5-state grey seal example incorporating biased movements toward haul-out and foraging locations \citep{McClintockEtAl2012}, a 4-state (``outbound'', ``searching'', ``foraging'', ``inbound'') southern elephant seal example with biased movements toward and away from a colony \citep{MichelotEtAl2017}, a 3-state (``resting'', ``foraging'', ``transit'') harbour seal example using population-level constraints on movement parameters \citep{McClintockEtAl2013c}, a 6-state northern fulmar example incorporating biased movements relative to both static (i.e. colony) and dynamic (i.e. fishing vessels) activity centers \citep{PirottaEtAl2018}, a 4-state long-finned pilot whale example including individual-level random effects on state transition probabilities \citep{IsojunnoEtAl2017}, and hierarchical HMMs fitted to harbor porpoise, garter snake, Atlantic cod, and horn shark data \citep{Leos-BarajasEtAl2017,AdamEtAl2019}, and a recharge dynamics model for African buffalo movements in a heterogeneous environment \citep{HootenEtAl2019}. Using simulated data, we also demonstrate how the group dynamic model of \cite{LangrockEtAl2014} can be implemented using \verb|momentuHMM|. Finally, we demonstrate how to simulate movement subject to barriers or other constraints (e.g. land for marine animals) using potential functions \citep[e.g.][]{BrillingerEtAl2012}. This brief tutorial includes workflows for data formatting, model specification, model fitting, and diagnostics. While many of the features of \verb|momentuHMM| were motivated by animal movement data, the package can be used for analyzing any type of data that is amenable to (multivariate) HMMs.  Additional information, including help files, data, examples, and package usage is available by downloading the \verb|momentuHMM| package from CRAN (\url{https://cran.r-project.org}) or GitHub (\url{https://github.com/bmcclintock/momentuHMM}). We ask that users please submit bug reports, questions, and other issues to GitHub (\url{https://github.com/bmcclintock/momentuHMM/issues}). This article describes \verb|momentuHMM| version 1.5.2.
 
 \section{momentuHMM overview}
 %Given the deliberately similar syntax between the two packages, 
@@ -355,7 +355,7 @@ Once a \verb|momentuHMMData| object has been created using \verb|prepData|, then
   \item{\verb|dist|} A named list indicating the probability distributions of the data streams.
   \item{\verb|estAngleMean|} An optional named list indicating whether or not to estimate the angle mean for data streams with angular distributions (e.g. turning angle). If not estimated (the default), the angle mean is fixed to 0.
   \item{\verb|formula|} Regression formula for the transition probability covariates
-  \item{\verb|stationary|} Logical indicating whether or not the initial distribution is considered equal to the stationary distribution (must be \verb|FALSE| if \verb|formula| includes covariates) 
+  \item{\verb|stationary|} Logical indicating whether or not the initial distribution is considered equal to the stationary distribution (must be \verb|FALSE| if \verb|formula| includes time-varying covariates) 
   \item{\verb|Par0|} A named list containing vectors of starting values for the state-dependent probability distribution parameters of each data stream
 \end{itemize}
 These seven arguments are all that are needed in order to fit the HMMs currently supported in \verb|moveHMM| \citep{MichelotEtAl2016}. For example, here is how the analysis of 15 ``wild haggis'' tracks described in \cite{MichelotEtAl2016} would be implemented using \verb|momentuHMM|:
@@ -461,7 +461,13 @@ See section \ref{sec:turtle} for example code using \verb|angleFormula| and the 
 
 \subsection{Individual-level random effects}
 \label{sec:randomEffects}
-HMM applications often assume the initial distribution and state transition probability matrix is the same for all individuals (i.e. ``complete pooling'' of the individuals' time series). But in reality, individuals often do not exhibit the same state-switching dynamics and there is individual-level variation.  Individual heterogeneity can often be well explained by covariates (e.g., sex, age class) and included in \verb|formula|, but it is not always possible to identify (and/or measure) all of the important covariates that drive this variation. One option is to include separate state-switching dynamics for each individual (i.e. ``no pooling'') by specifying \verb|formulaDelta = ~ID| and \verb|formula = ~ID|, but this ``fixed'' effect approach can result in many additional parameters to estimate (it also doesn't explain very much about potential factors driving individual heterogeneity). Alternatively, generic individual heterogeneity in state-switching dynamics can be modeled as a ``random'' effect. While continuous-valued individual-level random effects can be computationally demanding, discrete-valued random effects are more computationally feasible and can be effective in ``mopping up'' individual heterogeneity in the initial distribution and state transition probabilities that is not explained by measurable covariates. Discrete-valued random effects have recently been used in HHMs of animal movement \citep[e.g.][]{McKellarEtAl2014,TownerEtAl2016,DeRuiterEtAl2017,IsojunnoEtAl2017}, and these ``mixed'' HMMs can be fitted with \verb|fitHMM| (or \verb|MIfitHMM|) through the \verb|mixtures| and \verb|formulaPi| arguments.  The \verb|mixtures| argument specifies the number of mixtures $(K)$ in the model, where each mixture represents a possible initial distribution and transition probability matrix, and each individual time series is assumed to be driven by exactly one of these mixtures. For $K$ mixtures, the mixture weight $(\pi_k; k=1,\ldots,K)$ is the probability that the $k$th mixture underlies the state-switching dynamics for a given individual, and a model formula for ${\boldsymbol \pi}$ can be specified using the \verb|formulaPi| argument. For example, \cite{TownerEtAl2016} found support for $K=3$ mixtures and a sex covariate on ${\boldsymbol \pi}$ in their HMM for white shark movement, indicating that each of the three possible state-switching dynamics were exhibited differently for males and females; the random effects component of their model would be specified in \verb|fitHMM| (or \verb|MIfitHMM|) by simply setting \verb|mixtures = 3| and \verb|formulaPi = ~sex|. Note that because $\sum_{k=1}^K \pi_k = 1$, \verb|momentuHMM| uses a multinomial logit link function for ${\boldsymbol \pi}$ when covariates are included in \verb|formulaPi|. We demonstrate how to fit discrete-valued individual-level random effects on the initial distribution and state transition probabilities using the long-finned pilot whale example from \cite{IsojunnoEtAl2017} in section \ref{sec:pilotWhale}.
+HMM applications often assume the initial distribution and state transition probability matrix is the same for all individuals (i.e. ``complete pooling'' of the individuals' time series). But in reality, individuals often do not exhibit the same state-switching dynamics and there is individual-level variation.  Individual heterogeneity can often be well explained by covariates (e.g., sex, age class) and included in \verb|formula|, but it is not always possible to identify (and/or measure) all of the important covariates that drive this variation. One option is to include separate state-switching dynamics for each individual (i.e. ``no pooling'') by specifying \verb|formulaDelta = ~ID| and \verb|formula = ~ID|, but this ``fixed'' effect approach can result in many additional parameters to estimate (it also doesn't explain very much about potential factors driving individual heterogeneity). Alternatively, generic individual heterogeneity in state-switching dynamics can be modeled as a ``random'' effect \citep[e.g.][]{McClintock2020}. 
+
+\subsubsection{Discrete-valued random effects}
+While continuous-valued individual-level random effects can be computationally demanding, discrete-valued random effects are more computationally feasible and can be effective in ``mopping up'' individual heterogeneity in the initial distribution and state transition probabilities that is not explained by measurable covariates. Discrete-valued random effects have recently been used in HMMs of animal movement \citep[e.g.][]{McKellarEtAl2014,TownerEtAl2016,DeRuiterEtAl2017,IsojunnoEtAl2017}, and these ``mixed'' HMMs can be fitted with \verb|fitHMM| (or \verb|MIfitHMM|) through the \verb|mixtures| and \verb|formulaPi| arguments.  The \verb|mixtures| argument specifies the number of mixtures $(K)$ in the model, where each mixture represents a possible initial distribution and transition probability matrix, and each individual time series is assumed to be driven by exactly one of these mixtures. For $K$ mixtures, the mixture weight $(\pi_k; k=1,\ldots,K)$ is the probability that the $k$th mixture underlies the state-switching dynamics for a given individual, and a model formula for ${\boldsymbol \pi}$ can be specified using the \verb|formulaPi| argument. For example, \cite{TownerEtAl2016} found support for $K=3$ mixtures and a sex covariate on ${\boldsymbol \pi}$ in their HMM for white shark movement, indicating that each of the three possible state-switching dynamics were exhibited differently for males and females; the random effects component of their model would be specified in \verb|fitHMM| (or \verb|MIfitHMM|) by simply setting \verb|mixtures = 3| and \verb|formulaPi = ~sex|. Note that because $\sum_{k=1}^K \pi_k = 1$, \verb|momentuHMM| uses a multinomial logit link function for ${\boldsymbol \pi}$ when covariates are included in \verb|formulaPi|. We demonstrate how to fit discrete-valued individual-level random effects on the initial distribution and state transition probabilities using the long-finned pilot whale example from \cite{IsojunnoEtAl2017} in section \ref{sec:pilotWhale}.
+
+\subsubsection{Continuous-valued random effects}
+For continuous individual-level random effects on state transition probabilities, the \verb|randomEffects| function can be used to implement the approximate approach of \citet{BurnhamWhite2002}. In essence, this is a 2-stage approach where in the first stage the fixed effects model is fitted with \verb|fitHMM| (i.e.\ with \verb|formula=~0+ID|) and in the second stage the random effects model is fitted with \verb|randomEffects| based on the output of the fixed effects model. See \verb|?randomEffects| and \citet{McClintock2020} for further details.
 
 \subsection{Hierarchical hidden Markov models}
 \label{sec:HHMM}
@@ -481,7 +487,7 @@ We demonstrate use of the bivariate normal random walk model for loggerhead turt
 \begin{equation*}
   g_t = g_0 + \sum_{j=1}^t \theta_0 + \text{cov1}_j \theta_1 + \text{cov2}_j \theta_2,
 \end{equation*}
-where $\text{cov1}_j$ and $\text{cov2}_j$ are the corresponding habitat covariate values for the individual's location at time $j$. We demonstrate how to fit a discrete-time version of the African buffalo example from \cite{HootenEtAl2019} in section \ref{sec:recharge}. 
+where $\text{cov1}_j$ and $\text{cov2}_j$ are the corresponding habitat covariate values for the individual's location at time $j$. We demonstrate how to fit a discrete-time version of the African buffalo example from \cite{HootenEtAl2019} in section \ref{sec:buffalo}. 
 
 \subsection{Multiple imputation}
 \label{sec:mi}
@@ -1293,8 +1299,7 @@ Before we demonstrate how to implement these constraints, we should first provid
 {\boldsymbol \theta} &=&  \left({\mathbf U}_\theta - {\mathbf L}_\theta \right) g^{-1} \left( {\mathbf X}_\theta  {\boldsymbol \beta}_\theta^* \right) + {\mathbf L}_\theta, \nonumber
 %A^{\circ\frac12}
 \end{eqnarray}
-where %${\mathbf W}_\theta$ is a $K$-vector of \verb|workcons| values, ${\mathbf C}_\theta$ is a $K$-vector of \verb|cons| values specifying the element-wise power to which to raise each of the working scale parameters $({\boldsymbol \beta}_\theta)$, 
-${\mathbf L}_\theta$ is the lower bound on the natural scale and ${\mathbf U}_\theta$ is the upper bound on the natural scale.  Note that ${\boldsymbol \beta}_\theta^*={\boldsymbol \beta}_\theta$ under the default values for \verb|workBounds|. For natural scale parameters with finite lower bounds and infinite upper bounds, we have
+where ${\mathbf L}_\theta$ is the lower bound on the natural scale and ${\mathbf U}_\theta$ is the upper bound on the natural scale.  Note that ${\boldsymbol \beta}_\theta^*={\boldsymbol \beta}_\theta$ under the default values for \verb|workBounds|. For natural scale parameters with finite lower bounds and infinite upper bounds, we have
 \begin{eqnarray*}
 {\boldsymbol \theta} =  g^{-1} \left( {\mathbf X}_\theta  {\boldsymbol \beta}_\theta^* \right) + {\mathbf L}_\theta.
 %A^{\circ\frac12}
@@ -1816,7 +1821,7 @@ Finally, we can create a plot similar to \cite{PirottaEtAl2018} using the \verb|
 \subsection{Pilot whales}
 \label{sec:pilotWhale}
 
-Here we demonstrate how to include individual heterogeneity in state-switching dynamics via discrete-valued random effects by fitting the 4-state (``exploratory'', ``foraging'', ``crowded'', ``directed'') mixed HHM for long-finned pilot whales described in \cite{IsojunnoEtAl2017}.  The pilot whale data consist of 11 data streams collected from 15 individuals, and, as usual, we must first prepare the data for \verb|fitHMM| using \verb|prepData|. Let's summarize our prepared data using the \verb|summary| function:
+Here we demonstrate how to include individual heterogeneity in state-switching dynamics via discrete-valued random effects by fitting the 4-state (``exploratory'', ``foraging'', ``crowded'', ``directed'') mixed HMM for long-finned pilot whales described in \cite{IsojunnoEtAl2017}.  The pilot whale data consist of 11 data streams collected from 15 individuals, and, as usual, we must first prepare the data for \verb|fitHMM| using \verb|prepData|. Let's summarize our prepared data using the \verb|summary| function:
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -2204,7 +2209,7 @@ Now let's fit a model with $K=3$ mixtures by setting some starting values with t
 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\#\ \ Transition probability matrix formula: \textasciitilde{}1}}
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\#\ \ Initial distribution formula: \textasciitilde{}1}}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\#\ \ Initial distribution formula: stationary}}
 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\#\ \ Number of mixtures: 3}}
 
@@ -2404,13 +2409,11 @@ For comparison to the null and random effects models, let's also fit a model inc
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{Par0_fix} \hlkwb{<-} \hlkwd{getPar0}\hlstd{(fitmix1,} \hlkwc{formula}\hlstd{=} \hlopt{~}\hlstd{ID,} \hlkwc{formulaDelta}\hlstd{=} \hlopt{~}\hlstd{ID)}
-\hlstd{Par0_fix}\hlopt{$}\hlstd{delta[}\hlnum{1}\hlstd{,]} \hlkwb{<-} \hlkwd{log}\hlstd{(fitmix1}\hlopt{$}\hlstd{mle}\hlopt{$}\hlstd{delta[}\hlnum{1}\hlstd{,}\hlopt{-}\hlnum{1}\hlstd{]}\hlopt{/}\hlstd{fitmix1}\hlopt{$}\hlstd{mle}\hlopt{$}\hlstd{delta[}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{])}
+\hlstd{Par0_fix} \hlkwb{<-} \hlkwd{getPar0}\hlstd{(fitmix4,}\hlkwc{formula}\hlstd{=}\hlopt{~}\hlnum{0}\hlopt{+}\hlstd{ID,}\hlkwc{mixtures}\hlstd{=}\hlnum{1}\hlstd{)}
 
 \hlstd{fitfix} \hlkwb{<-} \hlkwd{fitHMM}\hlstd{(pilotData,} \hlkwc{nbStates}\hlstd{=}\hlnum{4}\hlstd{,} \hlkwc{dist}\hlstd{=dist,}
-                  \hlkwc{formula} \hlstd{=} \hlopt{~}\hlstd{ID,} \hlkwc{formulaDelta} \hlstd{=} \hlopt{~}\hlstd{ID,}
+                  \hlkwc{formula} \hlstd{=} \hlopt{~}\hlnum{0}\hlopt{+}\hlstd{ID,} \hlkwc{stationary}\hlstd{=}\hlnum{TRUE}\hlstd{,}
                   \hlkwc{Par0}\hlstd{=Par0_fix}\hlopt{$}\hlstd{Par,} \hlkwc{beta0}\hlstd{=Par0_fix}\hlopt{$}\hlstd{beta,}
-                  \hlkwc{delta0}\hlstd{=Par0_fix}\hlopt{$}\hlstd{delta,}
                   \hlkwc{stateNames}\hlstd{=stateNames,}
                   \hlkwc{nlmPar}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{hessian}\hlstd{=}\hlnum{FALSE}\hlstd{))}
 \end{alltt}
@@ -2427,9 +2430,9 @@ Based on AIC, we find overwhelming support for the discrete-valued individual-le
 ##     Model      AIC
 ## 1 fitmix3 37086.29
 ## 2 fitmix4 37098.24
-## 3 fitmix2 37132.58
-## 4 fitmix1 37164.80
-## 5  fitfix 37190.99
+## 3  fitfix 37124.75
+## 4 fitmix2 37132.58
+## 5 fitmix1 37164.80
 \end{verbatim}
 \begin{alltt}
 \hlkwd{AICweights}\hlstd{(fitmix1,fitmix2,fitmix3,fitmix4,fitfix)}
@@ -2438,9 +2441,9 @@ Based on AIC, we find overwhelming support for the discrete-valued individual-le
 ##     Model       weight
 ## 1 fitmix3 9.974679e-01
 ## 2 fitmix4 2.532142e-03
-## 3 fitmix2 8.825442e-11
-## 4 fitmix1 8.904782e-18
-## 5  fitfix 1.828650e-23
+## 3  fitfix 4.425936e-09
+## 4 fitmix2 8.825442e-11
+## 5 fitmix1 8.904782e-18
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -3112,10 +3115,10 @@ Finally, we can simulate from our fitted HHMM using the \verb|simHierData| funct
 ##   ID level dive_duration maximum_depth dive_wiggliness states
 ## 1  1     1            NA            NA              NA      1
 ## 2  1    2i            NA            NA              NA      2
-## 3  1     2      17.40918      8.806183       3.5524021      2
-## 4  1     2     101.66638     31.108172      39.3413842      3
-## 5  1     2      93.77662     10.365607      19.6485663      3
-## 6  1     2      10.99007      4.219885       0.4938597      1
+## 3  1     2      41.33292     16.671065       11.677436      2
+## 4  1     2      42.61752      8.838353       16.055691      2
+## 5  1     2      13.22006     10.052027        5.805089      2
+## 6  1     2      58.10525     13.430368        3.182826      2
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -3506,7 +3509,7 @@ Now let's fit our garter snake HHMM:
 ## ---------------------------------------------------------------
 ## --------------------------  level1  ---------------------------
 ##                         1 -> 4    1 -> 7   4 -> 1     4 -> 7    7 -> 1
-## I((level == "1") * 1) 1.245627 0.4309194 1.102371 -0.8702136 -1.397626
+## I((level == "1") * 1) 1.245627 0.4309195 1.102371 -0.8702136 -1.397626
 ##                          7 -> 4
 ## I((level == "1") * 1) -1.114395
 ## 
@@ -3514,8 +3517,8 @@ Now let's fit our garter snake HHMM:
 ##                          1 -> 2    1 -> 3   2 -> 2   2 -> 3   3 -> 2   3 -> 3
 ## I((level == "2") * 1) -2.993163 -5.064874 3.927789 1.246248 34.83412 35.96589
 ## 
-##                         4 -> 5    4 -> 6   5 -> 5   5 -> 6   6 -> 5   6 -> 6
-## I((level == "2") * 1) -1.72118 -2.775672 3.540744 2.834411 34.70869 36.19201
+##                          4 -> 5    4 -> 6   5 -> 5   5 -> 6   6 -> 5   6 -> 6
+## I((level == "2") * 1) -1.721179 -2.775671 3.540743 2.834411 34.70869 36.19201
 ## 
 ##                          7 -> 8    7 -> 9   8 -> 8  8 -> 9   9 -> 8   9 -> 9
 ## I((level == "2") * 1) -5.098038 -17.69051 5.761082 -11.341 33.38975 37.36931
@@ -3527,25 +3530,25 @@ Now let's fit our garter snake HHMM:
 ## ---------------------------------------------------------------
 ## --------------------------  level1  ---------------------------
 ##                internalState1 internalState2 internalState3
-## internalState1      0.1662846      0.5778580     0.25585741
+## internalState1      0.1662846      0.5778580     0.25585742
 ## internalState2      0.6797265      0.2257256     0.09454788
-## internalState3      0.1569121      0.2082869     0.63480103
+## internalState3      0.1569121      0.2082868     0.63480106
 ## 
 ## --------------------------  level2  ---------------------------
 ##              mo1        ex1         es1
 ## mo1 9.465723e-01 0.04745038 0.005977329
-## ex1 1.809240e-02 0.91899540 0.062912202
-## es1 1.814806e-16 0.24383499 0.756165011
+## ex1 1.809240e-02 0.91899540 0.062912203
+## es1 1.814806e-16 0.24383499 0.756165009
 ## 
 ##              mo2       ex2        es2
-## mo2 8.056962e-01 0.1441028 0.05020101
-## ex2 1.904293e-02 0.6568393 0.32411778
+## mo2 8.056961e-01 0.1441028 0.05020101
+## ex2 1.904293e-02 0.6568393 0.32411779
 ## es2 1.560291e-16 0.1849268 0.81507322
 ## 
 ##              mo3         ex3          es3
 ## mo3 9.939284e-01 0.006071628 2.062842e-08
-## ex3 3.137825e-03 0.996862137 3.726456e-08
-## es3 5.789928e-17 0.018350939 9.816491e-01
+## ex3 3.137826e-03 0.996862137 3.726456e-08
+## es3 5.789928e-17 0.018350938 9.816491e-01
 ## 
 ## ---------------------------------------------------------------
 ## 
@@ -3557,8 +3560,8 @@ Now let's fit our garter snake HHMM:
 ## (Intercept) -2.536671 -3.509152
 ## 
 ## --------------------  level2  --------------------
-##                          state 2   state 3
-## I((level == "2i") * 1) -1.387229 0.1583617
+##                         state 2   state 3
+## I((level == "2i") * 1) -1.38723 0.1583617
 ## 
 ##                          state 5  state 6
 ## I((level == "2i") * 1) -1.274268 2.327495
@@ -3573,25 +3576,25 @@ Now let's fit our garter snake HHMM:
 ## --------------------------------------------------
 ## --------------------  level1  --------------------
 ##       internalState1 internalState2 internalState3
-## ID:1       0.9016712     0.07134869     0.02698007
-## ID:2       0.9016712     0.07134869     0.02698007
-## ID:3       0.9016712     0.07134869     0.02698007
-## ID:4       0.9016712     0.07134869     0.02698007
-## ID:5       0.9016712     0.07134869     0.02698007
-## ID:6       0.9016712     0.07134869     0.02698007
-## ID:7       0.9016712     0.07134869     0.02698007
-## ID:8       0.9016712     0.07134869     0.02698007
-## ID:9       0.9016712     0.07134869     0.02698007
-## ID:10      0.9016712     0.07134869     0.02698007
-## ID:11      0.9016712     0.07134869     0.02698007
-## ID:12      0.9016712     0.07134869     0.02698007
-## ID:13      0.9016712     0.07134869     0.02698007
-## ID:14      0.9016712     0.07134869     0.02698007
-## ID:15      0.9016712     0.07134869     0.02698007
-## ID:16      0.9016712     0.07134869     0.02698007
-## ID:17      0.9016712     0.07134869     0.02698007
-## ID:18      0.9016712     0.07134869     0.02698007
-## ID:19      0.9016712     0.07134869     0.02698007
+## ID:1       0.9016712     0.07134871     0.02698007
+## ID:2       0.9016712     0.07134871     0.02698007
+## ID:3       0.9016712     0.07134871     0.02698007
+## ID:4       0.9016712     0.07134871     0.02698007
+## ID:5       0.9016712     0.07134871     0.02698007
+## ID:6       0.9016712     0.07134871     0.02698007
+## ID:7       0.9016712     0.07134871     0.02698007
+## ID:8       0.9016712     0.07134871     0.02698007
+## ID:9       0.9016712     0.07134871     0.02698007
+## ID:10      0.9016712     0.07134871     0.02698007
+## ID:11      0.9016712     0.07134871     0.02698007
+## ID:12      0.9016712     0.07134871     0.02698007
+## ID:13      0.9016712     0.07134871     0.02698007
+## ID:14      0.9016712     0.07134871     0.02698007
+## ID:15      0.9016712     0.07134871     0.02698007
+## ID:16      0.9016712     0.07134871     0.02698007
+## ID:17      0.9016712     0.07134871     0.02698007
+## ID:18      0.9016712     0.07134871     0.02698007
+## ID:19      0.9016712     0.07134871     0.02698007
 ## 
 ## --------------------  level2  --------------------
 ##                      mo1       ex1       es1
@@ -3600,8 +3603,8 @@ Now let's fit our garter snake HHMM:
 ##                       mo2        ex2       es2
 ## internalState2 0.08671624 0.02424895 0.8890348
 ## 
-##                      mo3       ex3      es3
-## internalState3 0.3150733 0.4421308 0.242796
+##                      mo3       ex3       es3
+## internalState3 0.3150733 0.4421308 0.2427959
 ## 
 ## --------------------------------------------------
 \end{verbatim}
@@ -4681,7 +4684,7 @@ Now we're ready to simulate our bivariate normal random walk model including the
 The model specified in \verb|DM| is identical to Eq. \ref{eq:potFun}, except we have replaced the ocean surface current velocities with the gradients for shortest distance to water in the x- and y-directions (\verb|grad.x| and \verb|grad.y|, respectively). As we can see in Figure \ref{fig:landConstraint}, the track is repelled from ``land'' and tends to stay in the ``water''. This strong attraction to water owes to the large negative values for the coefficients corresponding to \verb|grad.x| and \verb|grad.y|. 
 
 \section{Discussion}
-Here we have introduced version 1.5.0 of the R package \verb|momentuHMM| and demonstrated some of its capabilities for conducting multivariate HMM analyses with animal location, auxiliary biotelemetry, and environmental data. The package allows for fitting (and simulating from) a suite of biased and correlated random walk movement process models \citep[e.g.][]{McClintockEtAl2012}, can be used for an unlimited number of data streams and latent behavior states, includes multiple imputation methods to account for measurement error, temporal irregularity, and other forms of missing data that would otherwise be prohibitive to maximum likelihood analysis, and integrates seamlessly with rasters to facilitate spatio-temporal covariate modelling. Because the package incorporates biased random walks, it can also be used to implement group dynamic models \cite[e.g.][]{LangrockEtAl2014}. The package therefore greatly expands on available software and facilitates the incorporation of more ecological and behavioral realism for hypothesis-driven analyses of animal movement that account for many of the challenges commonly associated with telemetry data. While many of the features of \verb|momentuHMM| were motivated by animal movement data, we note that the package is not limited to location data and can be used for analyzing any type of data that is amenable to (multivariate) HMMs.
+Here we have introduced version 1.5.2 of the R package \verb|momentuHMM| and demonstrated some of its capabilities for conducting multivariate HMM analyses with animal location, auxiliary biotelemetry, and environmental data. The package allows for fitting (and simulating from) a suite of biased and correlated random walk movement process models \citep[e.g.][]{McClintockEtAl2012}, can be used for an unlimited number of data streams and latent behavior states, includes multiple imputation methods to account for measurement error, temporal irregularity, and other forms of missing data that would otherwise be prohibitive to maximum likelihood analysis, and integrates seamlessly with rasters to facilitate spatio-temporal covariate modelling. Because the package incorporates biased random walks, it can also be used to implement group dynamic models \cite[e.g.][]{LangrockEtAl2014}. The package therefore greatly expands on available software and facilitates the incorporation of more ecological and behavioral realism for hypothesis-driven analyses of animal movement that account for many of the challenges commonly associated with telemetry data. While many of the features of \verb|momentuHMM| were motivated by animal movement data, we note that the package is not limited to location data and can be used for analyzing any type of data that is amenable to (multivariate) HMMs.
 
 Model fitting in \verb|momentuHMM| is relatively fast because the forward algorithm (Eq. \ref{eq:HMMlike}) is coded in C++. Because multiple imputations are completely parallelizable, with sufficient processing power computation times for analyses that account for measurement error, temporal irregularity, or other forms of missing data need not be longer than that required to fit a single HMM.  However, computation times will necessarily be longer as the number of states and/or parameters increase. For example, \verb|momentuHMM| required about 1 hr to fit a single HMM with $N=6$ states, seven data streams, and $T=7414$ time steps \citep{McClintock2017}. 
 

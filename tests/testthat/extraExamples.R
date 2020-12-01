@@ -13,7 +13,7 @@ beta <- matrix(-1.5,1,nbStates * (nbStates - 1))
 # must be specified, where 'dist' determines the names of the data streams (e.g., 'step', 'angle') and the probability distributions.
 
 ### 1. moveHMM-type model
-setRNG::setRNG(kind="Mersenne-Twister",normal.kind="Inversion",seed=1)
+setRNG::setRNG(kind="Mersenne-Twister",normal.kind="Inversion",seed=2)
 data1<-simData(nbAnimals=4,nbStates=nbStates,dist=list(step=stepDist,angle=angleDist),Par=list(step=stepPar,angle=anglePar),beta=beta)
 mod1<-fitHMM(data1,nbStates=nbStates,dist=list(step=stepDist,angle=angleDist),Par0=list(step=stepPar,angle=anglePar[3:4]))
 print(mod1)
@@ -82,7 +82,7 @@ setRNG::setRNG(kind="Mersenne-Twister",normal.kind="Inversion",seed=1) # movemen
 nbStates<-2
 betaForest<-matrix(c(5,-10,-25,50),nrow=2,ncol=2,byrow=TRUE)
 spatialCov<-list(forest=forest)
-data6<-simData(nbAnimals=4,nbStates=nbStates,formula=~forest,dist=list(step=stepDist,angle=angleDist),Par=list(step=stepPar,angle=anglePar),beta=betaForest,spatialCovs=spatialCov,states=TRUE,retrySims=10)
+data6<-simData(nbAnimals=4,ncores=4,nbStates=nbStates,formula=~forest,dist=list(step=stepDist,angle=angleDist),Par=list(step=stepPar,angle=anglePar),beta=betaForest,spatialCovs=spatialCov,states=TRUE,retrySims=10)
 plotSpatialCov(data6,forest,states=data6$states,ask=FALSE)
 
 mod6<-fitHMM(data6,nbStates=nbStates,dist=list(step=stepDist,angle=angleDist),Par0=list(step=stepPar,angle=anglePar[3:4]),beta0=betaForest,formula=~forest)
@@ -118,7 +118,7 @@ centersPar <- list(step=wstepPar0,angle=wanglePar0)
 centersDM <- list(step=stepDM,angle=angleDM)
 
 # takes a while to simulate...
-data7<-simData(nbAnimals=4,obsPerAnimal=400,nbStates=nbStates,beta=betaCenters,formula=formula,Par=centersPar,DM=centersDM,circularAngleMean=list(angle=0),centers=activityCenters,dist=list(step="gamma",angle="wrpcauchy"),states=TRUE)
+data7<-simData(nbAnimals=4,ncores=4,obsPerAnimal=400,nbStates=nbStates,beta=betaCenters,formula=formula,Par=centersPar,DM=centersDM,circularAngleMean=list(angle=0),centers=activityCenters,dist=list(step="gamma",angle="wrpcauchy"),states=TRUE)
 plot(data7,ask=FALSE)
 
 # get Par0
@@ -142,7 +142,7 @@ data8<-simObsData(data7,lambda,errorEllipse) # alternatively, lambda and errorEl
 err.model <- list(x=~ln.sd.x-1, y=~ln.sd.y-1, rho=~error.corr) # error ellipse model
 
 setRNG::setRNG(kind="L'Ecuyer-CMRG",normal.kind="Inversion",seed=10)
-crwOut<-crawlWrap(data8,ncores=4,retryFits=2,retryParallel=TRUE,err.model=err.model,theta=c(4,0),fixPar=c(1,1,NA,NA),attempts=100)
+crwOut<-crawlWrap(data8,ncores=4,retryFits=3,retryParallel=TRUE,err.model=err.model,theta=c(4,0),fixPar=c(1,1,NA,NA),attempts=100)
 plot(crwOut,ask=FALSE)
 
 # fit best predicted locations
