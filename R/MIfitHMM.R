@@ -599,13 +599,13 @@ MIfitHMM.hierarchical<-function(miData,nSims, ncores = 1, poolEstimates = TRUE, 
       } else {
         registerDoParallel(cores=ncores)
       }
-      withCallingHandlers(crwHierSim <- foreach(mf=model_fits, i = 1:length(ids), .export="crwSimulator") %dorng% {
-        cat("Simulating individual ",ids[i],"...\n",sep="")
+      withCallingHandlers(crwHierSim <- foreach(mf=model_fits, i = ids, .export="crwSimulator") %dorng% {
+        cat("Simulating individual ",ids,"...\n",sep="")
         if(nbAnimals>ncores && progressBar){
-          if(!exists("pb")) pb <- tcltk::tkProgressBar(paste0("crwSimulator core ",i," initiated ",Sys.time()), min=1, max=nbAnimals, initial=i)
-          tcltk::setTkProgressBar(pb, i, label=paste("simulating individual",ids[i]))
+          if(!exists("pb")) pb <- tcltk::tkProgressBar(paste0("crwSimulator core ",which(i==ids)," initiated ",Sys.time()), min=1, max=nbAnimals, initial=which(i==ids))
+          tcltk::setTkProgressBar(pb, which(i==ids), label=paste("simulating individual",i))
         }
-        crawl::crwSimulator(mf,predTime=predTimes[[ids[i]]], method = method, parIS = parIS,
+        crawl::crwSimulator(mf,predTime=predTimes[[i]], method = method, parIS = parIS,
                             df = dfSim, grid.eps = grid.eps, crit = crit, scale = scaleSim, quad.ask = ifelse(ncores>1, FALSE, quad.ask), force.quad = force.quad)
       },warning=muffleRNGwarning)
       if(nbAnimals>ncores && progressBar) stopCluster(cl)
