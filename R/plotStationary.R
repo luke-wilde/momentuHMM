@@ -183,13 +183,15 @@ plotStationary.momentuHMM <- function(model, covs = NULL, col=NULL, plotCI=FALSE
 }
 
 # for differentiation in delta method
-get_stat <- function(beta,covs,nbStates,i,betaRef,betaCons,workBounds=matrix(c(-Inf,Inf),length(betaCons),2,byrow=TRUE),mixture=1,ref=1:nbStates) {
-  gamma <- get_gamma(beta,covs,nbStates,1:nbStates,1:nbStates,betaRef,betaCons,workBounds,mixture)
+get_stat <- function(beta,covs,nbStates,i,betaRef,betaCons,workBounds=matrix(c(-Inf,Inf),length(betaCons),2,byrow=TRUE),mixture=1,ref=1:nbStates,CT=FALSE,dt=NULL) {
+  dt <- ifelse(is.null(dt),1,mean(dt))
+  gamma <- get_gamma(beta,covs,nbStates,1:nbStates,1:nbStates,betaRef,betaCons,workBounds,mixture,CT,dt)
   solve(t(diag(length(ref))-gamma[ref,ref]+1),rep(1,length(ref)))[i]
 }
 
-get_stat_recharge <- function(beta,covs,formula,hierRecharge,nbStates,i,betaRef,betaCons,workBounds=matrix(c(-Inf,Inf),length(betaCons)+length(beta[(max(betaCons)+1):length(beta)]),2,byrow=TRUE),mixture=1,ref=1:nbStates){
-  gamma <- get_gamma_recharge(beta,covs,formula,hierRecharge,nbStates,1:nbStates,1:nbStates,betaRef,betaCons,workBounds,mixture)
+get_stat_recharge <- function(beta,covs,formula,hierRecharge,nbStates,i,betaRef,betaCons,workBounds=matrix(c(-Inf,Inf),length(betaCons)+length(beta[(max(betaCons)+1):length(beta)]),2,byrow=TRUE),mixture=1,ref=1:nbStates,CT=FALSE,dt=NULL){
+  dt <- ifelse(is.null(dt),1,mean(dt))
+  gamma <- get_gamma_recharge(beta,covs,formula,hierRecharge,nbStates,1:nbStates,1:nbStates,betaRef,betaCons,workBounds,mixture,CT,dt)
   solve(t(diag(length(ref))-gamma[ref,ref]+1),rep(1,length(ref)))[i]
 }
 
@@ -296,18 +298,20 @@ plotCall <- function(cov,tempCovs,pr,model,nbStates,covnames,lwd,arg,col,legend.
     lci <- matrix(NA,gridLength,length(ref))
     uci <- matrix(NA,gridLength,length(ref))
     
+    #if(isTRUE(model$conditions$CT)) Sigma <- Sigma * mean(model$data$dt)^2
+    
     for(state in 1:length(ref)) {
       
       if(is.null(hierRecharge)){
         dN <- t(apply(desMat, 1, function(x)
-          numDeriv::grad(get_stat,model$mod$estimate[gamInd[unique(c(model$conditions$betaCons))]],covs=matrix(x,1),nbStates=nbStates,i=state,betaRef=model$conditions$betaRef,betaCons=model$conditions$betaCons,workBounds=model$conditions$workBounds$beta,mixture=mix,ref=ref)))
+          numDeriv::grad(get_stat,model$mod$estimate[gamInd[unique(c(model$conditions$betaCons))]],covs=matrix(x,1),nbStates=nbStates,i=state,betaRef=model$conditions$betaRef,betaCons=model$conditions$betaCons,workBounds=model$conditions$workBounds$beta,mixture=mix,ref=ref,CT=isTRUE(attr(model$data,"CT")),dt=model$data$dt)))
         tmpSig <- Sigma[gamInd[unique(c(model$conditions$betaCons))],gamInd[unique(c(model$conditions$betaCons))]]
       } else {
         recharge <- expandRechargeFormulas(hierRecharge)
         recovs <- stats::model.matrix(recharge$theta,tempCovs)
         nbRecovs <- ncol(recovs)-1
         tmpSig <- Sigma[c(gamInd[unique(c(model$conditions$betaCons))],length(model$mod$estimate)-nbRecovs:0),c(gamInd[unique(c(model$conditions$betaCons))],length(model$mod$estimate)-nbRecovs:0)]
-        dN<-matrix(unlist(lapply(split(tempCovs,1:nrow(tempCovs)),function(x) tryCatch(numDeriv::grad(get_stat_recharge,model$mod$estimate[c(gamInd[unique(c(model$conditions$betaCons))],length(model$mod$estimate)-nbRecovs:0)],covs=x,formula=formula,hierRecharge=hierRecharge,nbStates=nbStates,i=state,betaRef=model$conditions$betaRef,betaCons=model$conditions$betaCons,workBounds=rbind(model$conditions$workBounds$beta,model$conditions$workBounds$theta),mixture=mix,ref=ref),error=function(e) NA))),ncol=ncol(tmpSig),byrow=TRUE)
+        dN<-matrix(unlist(lapply(split(tempCovs,1:nrow(tempCovs)),function(x) tryCatch(numDeriv::grad(get_stat_recharge,model$mod$estimate[c(gamInd[unique(c(model$conditions$betaCons))],length(model$mod$estimate)-nbRecovs:0)],covs=x,formula=formula,hierRecharge=hierRecharge,nbStates=nbStates,i=state,betaRef=model$conditions$betaRef,betaCons=model$conditions$betaCons,workBounds=rbind(model$conditions$workBounds$beta,model$conditions$workBounds$theta),mixture=mix,ref=ref,CT=isTRUE(attr(model$data,"CT")),dt=model$data$dt),error=function(e) NA))),ncol=ncol(tmpSig),byrow=TRUE)
       }
       
       se <- t(apply(dN, 1, function(x)

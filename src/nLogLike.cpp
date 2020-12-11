@@ -23,13 +23,14 @@
 //' the state is not known.
 //' @param betaRef Indices of reference elements for t.p.m. multinomial logit link.
 //' @param mixtures Number of mixtures for the state transition probabilities
+//' @param CT logical indicating whether to fit discrete-time approximation of a continuous-time model
 //' 
 //' @return Negative log-likelihood
 // [[Rcpp::export]]
 double nLogLike_rcpp(int nbStates, arma::mat covs, DataFrame data, CharacterVector dataNames, List dist,
                      List Par,
                      IntegerVector aInd, List zeroInflation, List oneInflation,
-                     bool stationary, IntegerVector knownStates, IntegerVector betaRef, int mixtures)
+                     bool stationary, IntegerVector knownStates, IntegerVector betaRef, int mixtures, bool CT)
 {
   int nbObs = data.nrows();
 
@@ -66,32 +67,60 @@ double nLogLike_rcpp(int nbStates, arma::mat covs, DataFrame data, CharacterVect
       
       beta = betaMix.rows(mix*(nbCovs+1)+0,mix*(nbCovs+1)+nbCovs);
       g = covs*beta;
-  
-      for(int k=0;k<nbObs;k++) {
-        int cpt=0; // counter for diagonal elements
-        for(int i=0;i<nbStates;i++) {
-          for(int j=0;j<nbStates;j++) {
-            if(j==(betaRef(i)-1)) {
-              // if reference element, set to one and increment counter
-              trMat[mix](i,j,k)=1;
-              cpt++;
+      
+      if(CT){ // continuous-time HMM approximation
+        NumericVector dt = data["dt"];
+        g = exp(g);
+        for(int k=0;k<nbObs;k++) {
+          int cpt=0; // counter for diagonal elements
+          for(int i=0;i<nbStates;i++) {
+            for(int j=0;j<nbStates;j++) {
+              if(j==(betaRef(i)-1)) {
+                if(i!=j){
+                  for(int l=0;l<(nbStates-1);l++){
+                    trMat[mix](i,j,k) +=  g(k,i*nbStates+l-cpt) * dt(k);
+                  }
+                  //Rprintf("k %d i %d j %d i*nbStates+j-cpt %d g %f trMat[mix](i,j,k) %f dt %f \n",k,i,j,i*nbStates+j-cpt,g(k,i*nbStates+j-cpt),trMat[mix](i,j,k),dt(k));
+                }
+                cpt++;
+              } else {
+                if(i!=j) trMat[mix](i,j,k) = g(k,i*nbStates+j-cpt) * dt(k);
+                //Rprintf("k %d i %d j %d i*nbStates+j-cpt %d g %f trMat[mix](i,j,k) %f dt %f \n",k,i,j,i*nbStates+j-cpt,g(k,i*nbStates+j-cpt),trMat[mix](i,j,k),dt(k));
+              }
             }
-            else
-              trMat[mix](i,j,k) = exp(g(k,i*nbStates+j-cpt));
-  
-            // keep track of row sums, to normalize in the end
-            rowSums(i,k)=rowSums(i,k)+trMat[mix](i,j,k);
+            for(int l=0;l<nbStates;l++){
+              if(i!=l) trMat[mix](i,i,k) -= trMat[mix](i,l,k);
+            }
+            //Rprintf("k %d i %d j %d trMat[mix](i,j,k) %f dt %f \n",k,i,i,trMat[mix](i,i,k),dt(k));
+          }
+        }        
+      } else { // standard discrete-time HMM
+        for(int k=0;k<nbObs;k++) {
+          int cpt=0; // counter for diagonal elements
+          for(int i=0;i<nbStates;i++) {
+            for(int j=0;j<nbStates;j++) {
+              if(j==(betaRef(i)-1)) {
+                // if reference element, set to one and increment counter
+                trMat[mix](i,j,k)=1;
+                cpt++;
+              }
+              else
+                trMat[mix](i,j,k) = exp(g(k,i*nbStates+j-cpt));
+    
+              // keep track of row sums, to normalize in the end
+              rowSums(i,k)=rowSums(i,k)+trMat[mix](i,j,k);
+            }
           }
         }
-      }
-  
-      // normalization
-      for(int k=0;k<nbObs;k++)
-        for(int i=0;i<nbStates;i++)
-          for(int j=0;j<nbStates;j++)
-            trMat[mix](i,j,k) = trMat[mix](i,j,k)/rowSums(i,k);
       
-      rowSums.zeros();
+        // normalization
+        for(int k=0;k<nbObs;k++)
+          for(int i=0;i<nbStates;i++)
+            for(int j=0;j<nbStates;j++)
+              trMat[mix](i,j,k) = trMat[mix](i,j,k)/rowSums(i,k);
+        
+        rowSums.zeros();
+      }
     }
   }
   
@@ -387,9 +416,12 @@ double nLogLike_rcpp(int nbStates, arma::mat covs, DataFrame data, CharacterVect
       
     for(int mix=0; mix<mixtures; mix++){
       
-      if(nbStates>1)
-        Gamma = trMat[mix].slice(i);
-      else
+      if(nbStates>1){
+        //Rprintf("i %d trMat %f %f %f %f \n",i,trMat[mix](0,0,i),trMat[mix](0,1,i),trMat[mix](1,0,i),trMat[mix](1,1,i));
+        if(CT) Gamma = arma::expmat(trMat[mix].slice(i));
+        else Gamma = trMat[mix].slice(i);
+        //Rprintf("i %d Gamma %f %f %f %f \n",i,Gamma(0,0),Gamma(0,1),Gamma(1,0),Gamma(1,1));
+      } else
         Gamma = 1; // no transition if only one state
       
       if(k<aInd.size() && i==(unsigned)(aInd(k)-1)) {

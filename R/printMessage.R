@@ -1,8 +1,8 @@
-printMessage <- function(nbStates,dist,p,DM,formula,formulaDelta,formulaPi,mixtures,what="Fitting",stationary,hierarchical=FALSE){
+printMessage <- function(nbStates,dist,p,DM,formula,formulaDelta,formulaPi,mixtures,what="Fitting",stationary,hierarchical=FALSE,CT=FALSE){
   distnames <- names(dist)
   message("=======================================================================")
-  if(!hierarchical) message(what," HMM with ",nbStates," state",ifelse(nbStates>1,"s","")," and ",length(distnames)," data stream",ifelse(length(distnames)>1,"s",""))
-  else message(what," hierarchical HMM with ",nbStates," state",ifelse(nbStates>1,"s","")," and ",length(distnames)," data stream",ifelse(length(distnames)>1,"s",""))
+  if(!hierarchical) message(what,ifelse(CT," continuous-time","")," HMM with ",nbStates," state",ifelse(nbStates>1,"s","")," and ",length(distnames)," data stream",ifelse(length(distnames)>1,"s",""))
+  else message(what," hierarchical ",ifelse(CT,"continuous-time","")," HMM with ",nbStates," state",ifelse(nbStates>1,"s","")," and ",length(distnames)," data stream",ifelse(length(distnames)>1,"s",""))
   message("-----------------------------------------------------------------------\n")
   for(i in distnames){
     pNames<-p$parNames[[i]]

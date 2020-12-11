@@ -42,6 +42,7 @@
 #' @param covsPi data frame containing the pi model covariates
 #' @param recharge recharge model specification (only used for hierarchical models)
 #' @param aInd vector of indices of first observation for each animal
+#' @param CT logical indicating whether to fit discrete-time approximation of a continuous-time model
 #'
 #' @return The negative log-likelihood of the parameters given the data.
 #'
@@ -76,7 +77,7 @@
 
 nLogLike <- function(optPar,nbStates,formula,bounds,parSize,data,dist,covs,
                      estAngleMean,circularAngleMean,consensus,zeroInflation,oneInflation,
-                     stationary=FALSE,fullDM,DMind,Bndind,knownStates,fixPar,wparIndex,nc,meanind,covsDelta,workBounds,prior=NULL,betaCons=NULL,betaRef,deltaCons=NULL,optInd=NULL,recovs=NULL,g0covs=NULL,mixtures=1,covsPi,recharge=NULL,aInd)
+                     stationary=FALSE,fullDM,DMind,Bndind,knownStates,fixPar,wparIndex,nc,meanind,covsDelta,workBounds,prior=NULL,betaCons=NULL,betaRef,deltaCons=NULL,optInd=NULL,recovs=NULL,g0covs=NULL,mixtures=1,covsPi,recharge=NULL,aInd=aInd,CT=FALSE)
 {
   
   # check arguments
@@ -93,6 +94,23 @@ nLogLike <- function(optPar,nbStates,formula,bounds,parSize,data,dist,covs,
   wpar <- expandPar(optPar,optInd,fixPar,wparIndex,betaCons,deltaCons,nbStates,ncol(covsDelta)-1,stationary,nbCovs,nbRecovs+nbG0covs,mixtures,ncol(covsPi)-1)
   par <- w2n(wpar,bounds,parSize,nbStates,nbCovs,estAngleMean,circularAngleMean,consensus,stationary,fullDM,DMind,nrow(data),dist,Bndind,nc,meanind,covsDelta,workBounds,covsPi)
 
+  if(CT){
+    for(i in distnames){
+      if(dist[[i]] %in% rwdists){
+        par[[i]][1:nbStates,] <- t(apply(par[[i]][1:nbStates,,drop=FALSE] - rep(data[[paste0(i,".x_tm1")]],each=nbStates),1,function(x) x*data$dt)) + rep(data[[paste0(i,".x_tm1")]],each=nbStates)
+        par[[i]][nbStates+1:nbStates,] <- t(apply(par[[i]][nbStates+1:nbStates,,drop=FALSE] - rep(data[[paste0(i,".y_tm1")]],each=nbStates),1,function(x) x*data$dt)) + rep(data[[paste0(i,".y_tm1")]],each=nbStates)
+        if(dist[[i]]=="rw_mvnorm3"){
+          par[[i]][2*nbStates+1:nbStates,] <- t(apply(par[[i]][2*nbStates+1:nbStates,,drop=FALSE] - rep(data[[paste0(i,".z_tm1")]],each=nbStates),1,function(x) x*data$dt)) + rep(data[[paste0(i,".z_tm1")]],each=nbStates)
+          par[[i]][3*nbStates+1:(3*nbStates),] <- t(apply(par[[i]][3*nbStates+1:(3*nbStates),,drop=FALSE],1,function(x) x*data$dt))
+        } else {
+          par[[i]][2*nbStates+1:(3*nbStates),] <- t(apply(par[[i]][2*nbStates+1:(3*nbStates),,drop=FALSE],1,function(x) x*data$dt))
+        }
+      } else {
+        par[[i]] <- t(apply(par[[i]],1,function(x) x*data$dt))
+      }
+    }
+  }
+  
   if(nbRecovs){
     for(i in 1:length(unique(data$ID))){
       idInd <- which(data$ID==unique(data$ID)[i])
@@ -109,7 +127,8 @@ nLogLike <- function(optPar,nbStates,formula,bounds,parSize,data,dist,covs,
       for(iLevel in 1:recLevels){
         g0 <- par$g0 %*% t(g0covs[(i-1)*recLevels+iLevel,,drop=FALSE])
         theta <- par$theta
-        covs[idInd,grepl(rechargeNames[iLevel],colnames(covs))] <- cumsum(c(g0,theta[colInd[[iLevel]]]%*%t(recovs[idInd[-length(idInd)],colInd[[iLevel]]])))
+        if(CT) covs[idInd,grepl(rechargeNames[iLevel],colnames(covs))] <- cumsum(c(g0,(theta[colInd[[iLevel]]]%*%t(recovs[idInd[-length(idInd)],colInd[[iLevel]]]))*data$dt[idInd[-length(idInd)]]))
+        else covs[idInd,grepl(rechargeNames[iLevel],colnames(covs))] <- cumsum(c(g0,theta[colInd[[iLevel]]]%*%t(recovs[idInd[-length(idInd)],colInd[[iLevel]]])))
       }
     }
   }
@@ -133,7 +152,7 @@ nLogLike <- function(optPar,nbStates,formula,bounds,parSize,data,dist,covs,
 
   nllk <- tryCatch(nLogLike_rcpp(nbStates,as.matrix(covs),data,names(dist),dist,
                         par,
-                        aInd,zeroInflation,oneInflation,stationary,knownStates,betaRef,mixtures),error=function(e) e)
+                        aInd,zeroInflation,oneInflation,stationary,knownStates,betaRef,mixtures,CT),error=function(e) e)
 
   if(inherits(nllk,"error")) nllk <- NaN
   

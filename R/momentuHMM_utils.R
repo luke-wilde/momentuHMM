@@ -9,6 +9,7 @@ oneInflationdists<-sort(c('beta'))
 integerdists<-sort(c('bern','pois','cat','negbinom'))
 mvndists <- c('mvnorm2','mvnorm3','rw_mvnorm2','rw_mvnorm3')
 rwdists <- c('rw_norm','rw_mvnorm2','rw_mvnorm3')
+CTHMMdists <- momentuHMMdists[which(!momentuHMMdists %in% c('bern','cat',angledists))]
 splineList<-c("bs","ns","bSpline","mSpline","cSpline","iSpline")
 meansList<-c("matrix","numeric","integer","logical","Date","POSIXlt","POSIXct","difftime")
 meansListNoTime<-c("numeric","integer","logical")

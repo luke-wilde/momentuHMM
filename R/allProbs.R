@@ -85,6 +85,23 @@ allProbs <- function(m)
 
   par <- w2n(m$mod$estimate,m$conditions$bounds,lapply(m$conditions$fullDM,function(x) nrow(x)/nbStates),nbStates,nbCovs,m$conditions$estAngleMean,m$conditions$circularAngleMean,consensus,m$conditions$stationary,m$conditions$fullDM,m$conditions$DMind,nbObs,dist,m$conditions$Bndind,nc,meanind,m$covsDelta,m$conditions$workBounds,m$covsPi)
   
+  if(isTRUE(m$conditions$CT)){
+    for(i in distnames){
+      if(dist[[i]] %in% rwdists){
+        par[[i]][1:nbStates,] <- t(apply(par[[i]][1:nbStates,,drop=FALSE] - rep(data[[paste0(i,".x_tm1")]],each=nbStates),1,function(x) x*data$dt)) + rep(data[[paste0(i,".x_tm1")]],each=nbStates)
+        par[[i]][nbStates+1:nbStates,] <- t(apply(par[[i]][nbStates+1:nbStates,,drop=FALSE] - rep(data[[paste0(i,".y_tm1")]],each=nbStates),1,function(x) x*data$dt)) + rep(data[[paste0(i,".y_tm1")]],each=nbStates)
+        if(dist[[i]]=="rw_mvnorm3"){
+          par[[i]][2*nbStates+1:nbStates,] <- t(apply(par[[i]][2*nbStates+1:nbStates,,drop=FALSE] - rep(data[[paste0(i,".z_tm1")]],each=nbStates),1,function(x) x*data$dt)) + rep(data[[paste0(i,".z_tm1")]],each=nbStates)
+          par[[i]][3*nbStates+1:(3*nbStates),] <- t(apply(par[[i]][3*nbStates+1:(3*nbStates),,drop=FALSE],1,function(x) x*data$dt))
+        } else {
+          par[[i]][2*nbStates+1:(3*nbStates),] <- t(apply(par[[i]][2*nbStates+1:(3*nbStates),,drop=FALSE],1,function(x) x*data$dt))
+        }
+      } else {
+        par[[i]] <- t(apply(par[[i]],1,function(x) x*data$dt))
+      }
+    }
+  }
+  
   Fun <- lapply(dist,function(x) paste("d",x,sep=""))
   
 

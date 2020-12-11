@@ -275,10 +275,11 @@ getDM_rcpp <- function(X, covs, DM, nr, nc, cov, nbObs) {
 #' the state is not known.
 #' @param betaRef Indices of reference elements for t.p.m. multinomial logit link.
 #' @param mixtures Number of mixtures for the state transition probabilities
+#' @param CT logical indicating whether to fit discrete-time approximation of a continuous-time model
 #' 
 #' @return Negative log-likelihood
-nLogLike_rcpp <- function(nbStates, covs, data, dataNames, dist, Par, aInd, zeroInflation, oneInflation, stationary, knownStates, betaRef, mixtures) {
-    .Call('_momentuHMM_nLogLike_rcpp', PACKAGE = 'momentuHMM', nbStates, covs, data, dataNames, dist, Par, aInd, zeroInflation, oneInflation, stationary, knownStates, betaRef, mixtures)
+nLogLike_rcpp <- function(nbStates, covs, data, dataNames, dist, Par, aInd, zeroInflation, oneInflation, stationary, knownStates, betaRef, mixtures, CT) {
+    .Call('_momentuHMM_nLogLike_rcpp', PACKAGE = 'momentuHMM', nbStates, covs, data, dataNames, dist, Par, aInd, zeroInflation, oneInflation, stationary, knownStates, betaRef, mixtures, CT)
 }
 
 #' Transition probability matrix
@@ -290,10 +291,12 @@ nLogLike_rcpp <- function(nbStates, covs, data, dataNames, dist, Par, aInd, zero
 #' @param beta Matrix of regression parameters
 #' @param covs Matrix of covariate values
 #' @param betaRef Indices of reference elements for t.p.m. multinomial logit link.
+#' @param CT logical indicating discrete-time approximation of a continuous-time model
+#' @param dt numeric vector of length \code{nrow(covs)} indicating the time difference between observations. Ignored unless \code{CT=TRUE}.
 #'
 #' @return Three dimensional array \code{trMat}, such that \code{trMat[,,t]} is the transition matrix at
 #' time t.
-trMatrix_rcpp <- function(nbStates, beta, covs, betaRef) {
-    .Call('_momentuHMM_trMatrix_rcpp', PACKAGE = 'momentuHMM', nbStates, beta, covs, betaRef)
+trMatrix_rcpp <- function(nbStates, beta, covs, betaRef, CT = FALSE, dt = as.numeric( c())) {
+    .Call('_momentuHMM_trMatrix_rcpp', PACKAGE = 'momentuHMM', nbStates, beta, covs, betaRef, CT, dt)
 }
 
