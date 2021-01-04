@@ -48,6 +48,7 @@ fitCTHMM(data, ...)
 \method{fitCTHMM}{momentuHierHMMData}(
   data,
   Time.name = "time",
+  Time.unit = "auto",
   hierStates,
   hierDist,
   Par0,
