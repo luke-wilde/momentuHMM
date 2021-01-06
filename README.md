@@ -13,13 +13,7 @@ install.packages("momentuHMM")
 ```
 
 ### Install from Github
-To install the latest (stable) version of the package from Github: [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=master)](https://travis-ci.org/bmcclintock/momentuHMM)
-``` R
-library(remotes)
-install_github("bmcclintock/momentuHMM")
-```
-
-To install the latest (**unstable**) version of the package from Github: [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=fitCTHMM)](https://travis-ci.org/bmcclintock/momentuHMM)
+To install the latest (**unstable**) version of the package that includes a continuous-time HMM function (fitCTHMM): [![Travis-CI Build Status](https://api.travis-ci.org/bmcclintock/momentuHMM.svg?branch=fitCTHMM)](https://travis-ci.org/bmcclintock/momentuHMM)
 ``` R
 library(remotes)
 install_github("bmcclintock/momentuHMM@fitCTHMM")
