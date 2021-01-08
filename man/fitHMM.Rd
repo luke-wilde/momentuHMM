@@ -500,7 +500,7 @@ Par0 <- list(step=Par$step,angle=Par$angle[-1])
 m.spline<-fitHMM(data.spline,nbStates=1,dist=dist,Par0=Par0,
                  DM=list(step=stepDM,
                          angle=angleDM["concentration"]))  
-  
+
 ### 10. Initial state (delta) based on covariate                       
 nObs <- 100
 dist <- list(step="gamma",angle="vm")
