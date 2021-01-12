@@ -213,6 +213,7 @@ fitCTHMM.momentuHMMData <- function(data,Time.name="time",Time.unit="auto",nbSta
                                DM=DM,userBounds=userBounds,workBounds=workBounds,betaCons=betaCons,betaRef=betaRef,deltaCons=deltaCons,
                                mvnCoords=mvnCoords,stateNames=stateNames,knownStates=knownStates,fixPar=fixPar,retryFits=retryFits,retrySD=retrySD,optMethod=optMethod,control=control,prior=prior,modelName=modelName, CT=TRUE)
   
+  class(mfit) <- append(class(mfit),"CTHMM")
   mfit$conditions$CT <- TRUE
   attr(mfit$data,"CT") <- TRUE
   if(fit) mfit$CIreal <- CIreal(mfit)
