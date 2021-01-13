@@ -128,6 +128,7 @@
 #' error ellipse elements, then the corresponding component is fixed to this value for each location. Only the 'step' and 'angle' data streams are subject to location measurement error;
 #' any other data streams are observed without error.  Ignored unless a valid distribution for the 'step' data stream is specified.
 #' @param ncores Number of cores to use for parallel processing. Default: 1 (no parallel processing).
+#' @param ... further arguments passed to or from other methods
 #' 
 #' @return If the simulated data are temporally regular (i.e., \code{lambda=NULL}) with no measurement error (i.e., \code{errorEllipse=NULL}), an object \code{\link{momentuHMMData}} (or \code{\link{momentuHierHMMData}}), 
 #' i.e., a dataframe of:
@@ -365,7 +366,8 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
                     retrySims=0,
                     lambda=NULL,
                     errorEllipse=NULL,
-                    ncores=1)
+                    ncores=1,
+                    ...)
 {
   
   ##############################
@@ -377,6 +379,8 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
       model <- model$miSum
     } 
     if(inherits(model,"momentuHierHMM") | inherits(model,"hierarchical")) stop("model can not be a 'momentuHierHMM' or 'hierarchical' object; use simHierData instead")
+    if(inherits(model,"CTHMM")) stop("model can not be of class 'CTHMM'; use simCTHMM instead")
+    else if(isTRUE(list(...)$CT)) class(model) <- append(class(model),"CTHMM")
     
     model <- delta_bc(model)
     
@@ -511,7 +515,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
         covs[[paste0(mvnCoords,".x_tm1")]] <- NULL
         covs[[paste0(mvnCoords,".y_tm1")]] <- NULL
         if(dist[[mvnCoords]]=="rw_mvnorm3") covs[[paste0(mvnCoords,".z_tm1")]] <- NULL
-        if(!ncol(covs)) covs <- NULL
+        if(is.null(covs) || !ncol(covs)) covs <- NULL
       }
     }
     # else, allow user to enter new values for covariates
@@ -529,7 +533,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
     if(is.null(formulaDelta)){
       formDelta <- ~1
     } else formDelta <- formulaDelta
-    mHind <- (requireNamespace("moveHMM", quietly = TRUE) && is.null(DM) & is.null(userBounds) & is.null(workBounds) & is.null(spatialCovs) & is.null(centers) & is.null(centroids) & ("step" %in% names(dist)) & all(unlist(initialPosition)==c(0,0)) & is.null(lambda) & is.null(errorEllipse) & !is.list(obsPerAnimal) & is.null(covs) & !nbCovs & !length(attr(stats::terms.formula(formula),"term.labels")) & !length(attr(stats::terms.formula(formDelta),"term.labels")) & is.null(delta) & is.null(betaRef) & is.null(mvnCoords) & mixtures==1) # indicator for moveHMM::simData
+    mHind <- (requireNamespace("moveHMM", quietly = TRUE) && is.null(DM) & is.null(userBounds) & is.null(workBounds) & is.null(spatialCovs) & is.null(centers) & is.null(centroids) & ("step" %in% names(dist)) & all(unlist(initialPosition)==c(0,0)) & is.null(lambda) & is.null(errorEllipse) & !is.list(obsPerAnimal) & is.null(covs) & !nbCovs & !length(attr(stats::terms.formula(formula),"term.labels")) & !length(attr(stats::terms.formula(formDelta),"term.labels")) & is.null(delta) & is.null(betaRef) & is.null(mvnCoords) & mixtures==1 & !isTRUE(list(...)$CT)) # indicator for moveHMM::simData
 
     if(all(names(dist) %in% c("step","angle")) & all(unlist(dist) %in% moveHMMdists) & mHind){
       zi <- FALSE
@@ -736,6 +740,17 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
       allNbObs[zoo] <- obsPerAnimal[[zoo]][1]
   }
   cumNbObs <- c(0,cumsum(allNbObs))
+  
+  obsTimes <- dt <- vector('list',nbAnimals)
+  for(zoo in 1:nbAnimals){
+    if(isTRUE(list(...)$CT)){
+      obsTimes[[zoo]] <- cumsum(c(1,stats::rexp(allNbObs[zoo]-1,lambda)))
+      dt[[zoo]] <- diff(obsTimes[[zoo]])
+    } else {
+      obsTimes[[zoo]] <- 1:allNbObs[zoo]
+      dt[[zoo]] <- diff(obsTimes[[zoo]])
+    }
+  }
 
   # extend covs if not enough covariate values
   if(!is.null(covs)) {
@@ -887,7 +902,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
   #  else formula <- stats::formula(~1)
   #}
   
-  printMessage(nbStates,dist,p,DM,formula,formDelta,formPi,mixtures,"Simulating",FALSE)
+  printMessage(nbStates,dist,p,DM,formula,formDelta,formPi,mixtures,"Simulating",FALSE,CT=isTRUE(list(...)$CT))
   
   if(length(all.vars(formula)))
     if(!all(all.vars(formula) %in% c("ID",names(allCovs),centerNames,centroidNames,spatialcovnames)))
@@ -1115,7 +1130,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
       if(!nbSpatialCovs & !length(centerInd) & !length(centroidInd) & !length(angleCovs) & !rwInd) {
         if(!is.null(recharge)){
           g0 <- stats::model.matrix(recharge$g0,subCovs[1,,drop=FALSE]) %*% wng0
-          subCovs[,"recharge"] <- cumsum(c(g0,stats::model.matrix(recharge$theta,subCovs[-nrow(subCovs),])%*%wntheta))
+          subCovs[,"recharge"] <- cumsum(c(g0,(wntheta %*% t(stats::model.matrix(recharge$theta,subCovs[-nrow(subCovs),])))*dt[[zoo]][-nrow(subCovs)]))
         }
         DMcov <- stats::model.matrix(newformula,subCovs)
         
@@ -1205,7 +1220,6 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
         # assign individual to mixture
         if(mixtures>1) mix[zoo] <- sample.int(mixtures,1,prob=pie)
         
-        g <- stats::model.matrix(newformula,cbind(subCovs[1,,drop=FALSE],subSpatialcovs[1,,drop=FALSE])) %*% wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,]
         covsDelta <- stats::model.matrix(formDelta,cbind(subCovs[1,,drop=FALSE],subSpatialcovs[1,,drop=FALSE]))
         
         delta0 <- mlogit(deltaB[(mix[zoo]-1)*(nbCovsDelta+1)+1:(nbCovsDelta+1),,drop=FALSE],covsDelta,nbCovsDelta,1,nbStates)
@@ -1218,9 +1232,15 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
         #  delta0[i,] <- as.numeric(tmp/Brobdingnag::sum(tmp))
         #}
       }
-      gamma[!gamma] <- exp(g)
-      gamma <- t(gamma)
-      gamma <- gamma/apply(gamma,1,sum)
+      
+      if(!isTRUE(list(...)$CT)){
+        g <- stats::model.matrix(newformula,cbind(subCovs[1,,drop=FALSE],subSpatialcovs[1,,drop=FALSE])) %*% wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,]
+        gamma[!gamma] <- exp(g)
+        gamma <- t(gamma)
+        gamma <- gamma/apply(gamma,1,sum)
+      } else {
+        gamma <- matrix(trMatrix_rcpp(nbStates, wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,,drop=FALSE], stats::model.matrix(newformula,cbind(subCovs[1,,drop=FALSE],subSpatialcovs[1,,drop=FALSE])), betaRef, TRUE, dt[[zoo]][1])[,,1],nbStates,nbStates)
+      }
       
       if(nbStates>1) {
         Z <- rep(NA,nbObs)
@@ -1256,6 +1276,23 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
           subPar <- w2n(wpar,bounds,parSize,nbStates,nbBetaCovs-1,inputs$estAngleMean,inputs$circularAngleMean,inputs$consensus,stationary=FALSE,fullDM,DMind,1,inputs$dist,p$Bndind,nc,meanind,covsDelta,workBounds,covsPi)
         } else {
           subPar <- lapply(fullsubPar[distnames],function(x) x[,k,drop=FALSE])#fullsubPar[,k,drop=FALSE]
+        }
+        
+        if(isTRUE(list(...)$CT)){
+          for(i in distnames){
+            if(dist[[i]] %in% rwdists){
+              subPar[[i]][1:nbStates,] <- t(apply(subPar[[i]][1:nbStates,,drop=FALSE] - rep(subCovs[k,paste0(i,".x_tm1")],each=nbStates),1,function(x) x*dt[[zoo]][k])) + rep(subCovs[k,paste0(i,".x_tm1")],each=nbStates)
+              subPar[[i]][nbStates+1:nbStates,] <- t(apply(subPar[[i]][nbStates+1:nbStates,,drop=FALSE] - rep(subCovs[k,paste0(i,".y_tm1")],each=nbStates),1,function(x) x*dt[[zoo]][k])) + rep(subCovs[k,paste0(i,".y_tm1")],each=nbStates)
+              if(dist[[i]]=="rw_mvnorm3"){
+                subPar[[i]][2*nbStates+1:nbStates,] <- t(apply(subPar[[i]][2*nbStates+1:nbStates,,drop=FALSE] - rep(subCovs[k,paste0(i,".z_tm1")],each=nbStates),1,function(x) x*dt[[zoo]][k])) + rep(subCovs[k,paste0(i,".z_tm1")],each=nbStates)
+                subPar[[i]][3*nbStates+1:(3*nbStates),] <- t(apply(subPar[[i]][3*nbStates+1:(3*nbStates),,drop=FALSE],1,function(x) x*dt[[zoo]][k]))
+              } else {
+                subPar[[i]][2*nbStates+1:(3*nbStates),] <- t(apply(subPar[[i]][2*nbStates+1:(3*nbStates),,drop=FALSE],1,function(x) x*dt[[zoo]][k]))
+              }
+            } else {
+              subPar[[i]] <- t(apply(subPar[[i]],1,function(x) x*dt[[zoo]][k]))
+            }
+          }
         }
         
         for(i in distnames){
@@ -1384,7 +1421,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
             }
           }
           if(!is.null(recharge)){
-            subCovs[k+1,"recharge"] <- subCovs[k,"recharge"] + stats::model.matrix(recharge$theta,cbind(subCovs[k,,drop=FALSE],subSpatialcovs[k,,drop=FALSE])) %*% wntheta
+            subCovs[k+1,"recharge"] <- subCovs[k,"recharge"] + (wntheta %*% t(stats::model.matrix(recharge$theta,cbind(subCovs[k,,drop=FALSE],subSpatialcovs[k,,drop=FALSE]))))*dt[[zoo]][k]
           }
           for(i in distnames){
             if(dist[[i]] %in% rwdists){
@@ -1392,13 +1429,20 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
               else if(dist[[i]] %in% c("rw_mvnorm3")) subCovs[k+1,paste0(i,c(".x_tm1",".y_tm1",".z_tm1"))] <- X[k+1,]
             }
           }
-          g <- stats::model.matrix(newformula,cbind(subCovs[k+1,,drop=FALSE],subSpatialcovs[k+1,,drop=FALSE])) %*% wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,]
-        } else {
-          g <- gFull[k+1,,drop=FALSE]
         }
-        gamma[!gamma] <- exp(g)
-        gamma <- t(gamma)
-        gamma <- gamma/apply(gamma,1,sum)
+        if(!isTRUE(list(...)$CT)){
+          if(nbSpatialCovs | length(centerInd) | length(centroidInd) | length(angleCovs) | rwInd)
+            g <- stats::model.matrix(newformula,cbind(subCovs[k+1,,drop=FALSE],subSpatialcovs[k+1,,drop=FALSE])) %*% wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,]
+          else g <- gFull[k+1,,drop=FALSE]
+          gamma[!gamma] <- exp(g)
+          gamma <- t(gamma)
+          gamma <- gamma/apply(gamma,1,sum)
+        } else {
+          if(nbSpatialCovs | length(centerInd) | length(centroidInd) | length(angleCovs) | rwInd)
+            gamma <- matrix(trMatrix_rcpp(nbStates, wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,,drop=FALSE], stats::model.matrix(newformula,cbind(subCovs[k+1,,drop=FALSE],subSpatialcovs[k+1,,drop=FALSE])), betaRef, TRUE, dt[[zoo]][k])[,,1],nbStates,nbStates)
+          else
+            gamma <- matrix(trMatrix_rcpp(nbStates, wnbeta[(mix[zoo]-1)*nbBetaCovs+1:nbBetaCovs,,drop=FALSE], DMcov[k+1,,drop=FALSE], betaRef, TRUE, dt[[zoo]][k])[,,1],nbStates,nbStates)
+        }
         Z[k+1] <- sample(1:nbStates,size=1,prob=gamma[Z[k],])  
       }
       #allStates <- c(allStates,Z)
@@ -1491,8 +1535,11 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
     }
     
     # account for observation error (if any)
-    out<-simObsData(momentuHMMData(simDat$data),lambda,errorEllipse)
-    
+    if(!isTRUE(list(...)$CT)) out<-simObsData(momentuHMMData(simDat$data),lambda,errorEllipse)
+    else {
+      out<-simObsData(momentuHMMData(simDat$data),lambda=NULL,errorEllipse)
+      out$time <- unlist(obsTimes)
+    }
     message("DONE")
     return(out)
   } else {
@@ -1519,7 +1566,8 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
                           retrySims=0,
                           lambda,
                           errorEllipse,
-                          ncores),error=function(e) e))
+                          ncores,
+                          ...),error=function(e) e))
       if(inherits(tmp,"error")){
         if(ncores==1) cat("FAILED\n")
         if(grepl("Try expanding the extent of the raster",tmp)) simCount <- simCount+1
