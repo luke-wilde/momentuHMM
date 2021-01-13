@@ -642,8 +642,10 @@ MIpool<-function(HMMfits, alpha=0.95, ncores=1, covs=NULL, na.rm=FALSE){
   }
   
   attr(mh$data,"coords") <- coordNames
-  if(isTRUE(attr(im[[1]]$data,"CT"))) attr(mh$data,"CT") <- TRUE
-  
+  if(isTRUE(attr(im[[1]]$data,"CT"))) {
+    attr(mh$data,"CT") <- TRUE
+    class(mh) <- append(class(mh),"CTHMM")
+  }
   return(mh)
 }
 
