@@ -88,7 +88,7 @@ simObsData.momentuHMMData<-function(data,lambda,errorEllipse,...){
       M<-m<-r<-c(0,0)
     }
     if(!is.null(lambda))
-      if(lambda<=0) stop('lambda must be >0')
+      if(length(lambda)>1 || lambda<=0) stop('lambda must be a scalar and >0')
   
     distnames<-names(data)[which(!(names(data) %in% c("ID",coordNames,"step","angle")))]
     

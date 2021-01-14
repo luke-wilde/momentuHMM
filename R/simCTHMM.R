@@ -57,7 +57,8 @@
 #' @param model A \code{\link{momentuHMM}}, \code{\link{miHMM}}, or \code{\link{miSum}} object. This option can be used to simulate from a fitted model.  Default: NULL.
 #' Note that, if this argument is specified, most other arguments will be ignored -- except for \code{nbAnimals},
 #' \code{obsPerAnimal}, \code{states}, \code{initialPosition}, \code{lambda}, \code{errorEllipse}, and, if covariate values different from those in the data should be specified, 
-#' \code{covs}, \code{spatialCovs}, \code{centers}, and \code{centroids}. It is not appropriate to simulate movement data from a \code{model} that was fitted to latitude/longitude data (because \code{simData} assumes Cartesian coordinates).
+#' \code{covs}, and \code{spatialCovs}. It is not appropriate to simulate movement data from a \code{model} that was fitted to latitude/longitude data (because \code{simData} assumes Cartesian coordinates).
+#' @param matchModelObs If \code{model} is provided, logical indicating whether to match \code{nbAnimals}, \code{obsPerAnimal}, and observation times to the fitted model data. If \code{TRUE}, then \code{nbAnimals}, \code{obsPerAnimal}, and \code{lambda} are ignored. Default: \code{TRUE}.
 #' @param states \code{TRUE} if the simulated states should be returned, \code{FALSE} otherwise (default).
 #' @param retrySims Number of times to attempt to simulate data within the spatial extent of \code{spatialCovs}. If \code{retrySims=0} (the default), an
 #' error is returned if the simulated tracks(s) move beyond the extent(s) of the raster layer(s). Instead of relying on \code{retrySims}, in many cases
@@ -116,7 +117,9 @@ simCTHMM <- function(nbAnimals=1,nbStates=2,dist,
                      obsPerAnimal=c(500,1500),
                      initialPosition=c(0,0),
                      DM=NULL,userBounds=NULL,workBounds=NULL,betaRef=NULL,mvnCoords=NULL,stateNames=NULL,
-                     model=NULL,states=FALSE,
+                     model=NULL,
+                     matchModelObs=TRUE,
+                     states=FALSE,
                      retrySims=0,
                      #times=NULL,
                      lambda=1,
@@ -132,10 +135,23 @@ simCTHMM <- function(nbAnimals=1,nbStates=2,dist,
     if(!inherits(model,"CTHMM")) stop("model must be of class 'CTHMM'")
     attributes(model)$class <- attributes(model)$class[which(!attributes(model)$class %in% "CTHMM")]
     mvnCoords <- model$conditions$mvnCoords
+    if(matchModelObs){
+      rwInd <- any(unlist(lapply(model$conditions$dist,function(x) x %in% rwdists)))
+      nbAnimals <- length(unique(model$data$ID))
+      obsPerAnimal <- as.list(table(model$data$ID)+ifelse(rwInd,1,0))
+      lambda <- list()
+      for(zoo in 1:nbAnimals){
+       lambda[[zoo]] <- model$data[[model$conditions$Time.name]][which(model$data$ID==unique(model$data$ID)[zoo])]
+       if(rwInd) lambda[[zoo]] <- c(lambda[[zoo]],tail(lambda[[zoo]],1)+model$data$dt[tail(which(model$data$ID==unique(model$data$ID)[zoo]),1)])
+      }
+    }
   } else {
     for(i in names(dist)){
       if(!dist[[i]] %in% CTHMMdists) stop("Sorry, currently simCTHMM only supports the following distributions: ",paste0(CTHMMdists,sep=", "))
     }
+    if(!is.null(lambda)){
+      if(length(lambda)>1 || lambda<=0) stop('lambda must be a scalar and >0')
+    } else stop("lambda cannot be NULL")
   }
   
   out <- simData(nbAnimals,nbStates,dist,

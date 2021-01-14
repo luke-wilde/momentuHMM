@@ -744,7 +744,9 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
   obsTimes <- dt <- vector('list',nbAnimals)
   for(zoo in 1:nbAnimals){
     if(isTRUE(list(...)$CT)){
-      obsTimes[[zoo]] <- cumsum(c(1,stats::rexp(allNbObs[zoo]-1,lambda)))
+      if(!is.list(lambda))
+        obsTimes[[zoo]] <- cumsum(c(1,stats::rexp(allNbObs[zoo]-1,lambda)))
+      else obsTimes[[zoo]] <- lambda[[zoo]]
       dt[[zoo]] <- diff(obsTimes[[zoo]])
     } else {
       obsTimes[[zoo]] <- 1:allNbObs[zoo]

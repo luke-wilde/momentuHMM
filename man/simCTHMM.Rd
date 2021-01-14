@@ -27,6 +27,7 @@ simCTHMM(
   mvnCoords = NULL,
   stateNames = NULL,
   model = NULL,
+  matchModelObs = TRUE,
   states = FALSE,
   retrySims = 0,
   lambda = 1,
@@ -111,7 +112,9 @@ the diagonal elements of the transition rate matrix are the reference.}
 \item{model}{A \code{\link{momentuHMM}}, \code{\link{miHMM}}, or \code{\link{miSum}} object. This option can be used to simulate from a fitted model.  Default: NULL.
 Note that, if this argument is specified, most other arguments will be ignored -- except for \code{nbAnimals},
 \code{obsPerAnimal}, \code{states}, \code{initialPosition}, \code{lambda}, \code{errorEllipse}, and, if covariate values different from those in the data should be specified, 
-\code{covs}, \code{spatialCovs}, \code{centers}, and \code{centroids}. It is not appropriate to simulate movement data from a \code{model} that was fitted to latitude/longitude data (because \code{simData} assumes Cartesian coordinates).}
+\code{covs}, and \code{spatialCovs}. It is not appropriate to simulate movement data from a \code{model} that was fitted to latitude/longitude data (because \code{simData} assumes Cartesian coordinates).}
+
+\item{matchModelObs}{If \code{model} is provided, logical indicating whether to match \code{nbAnimals}, \code{obsPerAnimal}, and observation times to the fitted model data. If \code{TRUE}, then \code{nbAnimals}, \code{obsPerAnimal}, and \code{lambda} are ignored. Default: \code{TRUE}.}
 
 \item{states}{\code{TRUE} if the simulated states should be returned, \code{FALSE} otherwise (default).}
 

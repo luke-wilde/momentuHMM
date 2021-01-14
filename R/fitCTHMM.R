@@ -217,6 +217,8 @@ fitCTHMM.momentuHMMData <- function(data,Time.name="time",Time.unit="auto",nbSta
   mfit$conditions$CT <- TRUE
   attr(mfit$data,"CT") <- TRUE
   if(fit) mfit$CIreal <- CIreal(mfit)
+  mfit$conditions$Time.name <- Time.name
+  mfit$conditions$Time.unit <- Time.unit
   return(mfit)
   
 
