@@ -190,14 +190,20 @@ fitCTHMM.momentuHMMData <- function(data,Time.name="time",Time.unit="auto",nbSta
       for(iLevel in levels(data$level)){
         iDat <- which(data$ID==i & data$level==iLevel)
         if(!grepl("i",iLevel)){
-          if(inherits(data[[Time.name]],"POSIXt")) data$dt[iDat] <- c(difftime(data[[Time.name]][iDat][-1],data[[Time.name]][iDat][-length(iDat)],units=Time.unit),0)
-          else data$dt[iDat] <- c(diff(data[[Time.name]][iDat]),0)
+          if(inherits(data[[Time.name]],"POSIXt")) {
+            tmpTime <- difftime(data[[Time.name]][iDat][-1],data[[Time.name]][iDat][-length(iDat)],units=Time.unit)
+            Time.unit <- units(tmpTime)
+            data$dt[iDat] <- c(tmpTime,0)
+          } else data$dt[iDat] <- c(diff(data[[Time.name]][iDat]),0)
         } else data$dt[iDat] <- 1
       }
     } else {
       iDat <- which(data$ID==i)
-      if(inherits(data[[Time.name]],"POSIXt")) data$dt[iDat] <- c(difftime(data[[Time.name]][iDat][-1],data[[Time.name]][iDat][-length(iDat)],units=Time.unit),0)
-      else data$dt[iDat] <- c(diff(data[[Time.name]][iDat]),0)
+      if(inherits(data[[Time.name]],"POSIXt")) {
+        tmpTime <- difftime(data[[Time.name]][iDat][-1],data[[Time.name]][iDat][-length(iDat)],units=Time.unit)
+        Time.unit <- units(tmpTime)
+        data$dt[iDat] <- c(tmpTime,0)
+      } else data$dt[iDat] <- c(diff(data[[Time.name]][iDat]),0)
     }
   }
   

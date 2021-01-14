@@ -742,12 +742,15 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
   cumNbObs <- c(0,cumsum(allNbObs))
   
   obsTimes <- dt <- vector('list',nbAnimals)
+  allObsTimes <- NULL
   for(zoo in 1:nbAnimals){
     if(isTRUE(list(...)$CT)){
       if(!is.list(lambda))
         obsTimes[[zoo]] <- cumsum(c(1,stats::rexp(allNbObs[zoo]-1,lambda)))
       else obsTimes[[zoo]] <- lambda[[zoo]]
-      dt[[zoo]] <- diff(obsTimes[[zoo]])
+      if(inherits(obsTimes[[zoo]],"POSIXt")) dt[[zoo]] <- difftime(obsTimes[[zoo]][-1],obsTimes[[zoo]][-length(obsTimes[[zoo]])],units=attr(lambda[[zoo]],"units"))
+      else dt[[zoo]] <- diff(obsTimes[[zoo]])
+      allObsTimes <- append(allObsTimes,obsTimes[[zoo]])
     } else {
       obsTimes[[zoo]] <- 1:allNbObs[zoo]
       dt[[zoo]] <- diff(obsTimes[[zoo]])
@@ -1540,7 +1543,7 @@ simData <- function(nbAnimals=1,nbStates=2,dist,
     if(!isTRUE(list(...)$CT)) out<-simObsData(momentuHMMData(simDat$data),lambda,errorEllipse)
     else {
       out<-simObsData(momentuHMMData(simDat$data),lambda=NULL,errorEllipse)
-      out$time <- unlist(obsTimes)
+      out$time <- allObsTimes
     }
     message("DONE")
     return(out)
